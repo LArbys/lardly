@@ -9,9 +9,24 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
-from detectordisplay import DetectorDisplay
+from larlite import larlite
+from larcv import larcv
+import lardly
 
-detdata = DetectorDisplay()
+#input_larlite = sys.argv[1]
+input_larlite = "output_dltagger_larlite.root"
+
+io_ll = larlite.storage_manager(larlite.storage_manager.kREAD)
+io_ll.add_in_filename( input_larlite )
+io_ll.open()
+
+io_ll.go_to(0)
+
+evtrack = io_ll.get_data(larlite.data.kTrack,"dltagger_allreco")
+print("number of tracks: ",evtrack.size())
+track_v = [ lardly.data.visualize_larlite_track( evtrack[i] ) for i in xrange(evtrack.size())  ]
+
+detdata = lardly.DetectorOutline()
 
 app = dash.Dash(
     __name__,
@@ -38,8 +53,9 @@ plot_layout = {
         "xaxis": axis_template,
         "yaxis": axis_template,
         "zaxis": axis_template,
-        "aspectratio": {"x": 1, "y": 1.2, "z": 1},
-        "camera": {"eye": {"x": 1.25, "y": 1.25, "z": 1.25}},
+        "aspectratio": {"x": 1, "y": 1, "z": 4},
+        "camera": {"eye": {"x": 2, "y": 2, "z": 2},
+                   "up":dict(x=0, y=1, z=0)},
         "annotations": [],
     },
 }
@@ -50,7 +66,7 @@ app.layout = html.Div(
         dcc.Graph(
             id="brain-graph",
             figure={
-                "data": detdata.getmeshdata(),
+                "data": detdata.getlines()+track_v,
                 "layout": plot_layout,
             },
             config={"editable": True, "scrollZoom": False},

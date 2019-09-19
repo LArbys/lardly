@@ -7,12 +7,13 @@ import plotly.graph_objs as go
 
 def visualize_larcv_image2d( image2d ):
     meta = image2d.meta()
-    imgnp = np.transpose( larcv.as_ndarray( image2d ), (1,0 ) )
+    imgnp = np.transpose( larcv.as_ndarray( image2d ), (1,0) )
     if meta.plane() in [0,1]:
-        imgnp = imgnp[0:2400,:]
-        maxx = 2400
+        imgnp = imgnp[:,0:2400]
+        maxx = 2400.0
     else:
         maxx = meta.max_x()
+    print("image shape: ",imgnp.shape," maxx=",maxx)
     xaxis = np.linspace( meta.min_x(), maxx, endpoint=False, num=int(maxx/meta.pixel_width()) )
     yaxis = np.linspace( meta.min_y(), meta.max_y(), endpoint=False, num=meta.rows() )
     print(type(imgnp),type(xaxis),type(yaxis))

@@ -104,14 +104,14 @@ app.layout = html.Div( [
             id="image2d_plane0",
             figure={"data":[ lardly.data.visualize_larcv_image2d( img2d_v[0] )]+pixtraces,
                     "layout":{"height":800} }),
-            #figure={"data":[ lardly.data.visualize_larcv_image2d( img2d_v[0] ) ]}),
-            #figure={"data":[ testline ]}),
-        #dcc.Graph(
-        #    id="image2d_plane1",
-        #    figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[1] )]}),
-        #dcc.Graph(
-        #    id="image2d_plane2",
-        #    figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[2] )]}),
+        dcc.Graph(
+            id="image2d_plane1",
+            figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[1] )],
+                    "layout":{"height":800}}),
+        dcc.Graph(
+            id="image2d_plane2",
+            figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[2] )],
+                    "layout":{"height":800}}),
         ] ),
     ] )
 

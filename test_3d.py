@@ -15,16 +15,34 @@ import lardly
 
 #input_larlite = sys.argv[1]
 input_larlite = "output_dltagger_larlite.root"
+input_larcv   = "output_dltagger_larcv.root"
 
+# LARLITE
 io_ll = larlite.storage_manager(larlite.storage_manager.kREAD)
 io_ll.add_in_filename( input_larlite )
 io_ll.open()
-
 io_ll.go_to(0)
 
+# TRACK
 evtrack = io_ll.get_data(larlite.data.kTrack,"dltagger_allreco")
 print("number of tracks: ",evtrack.size())
 track_v = [ lardly.data.visualize_larlite_track( evtrack[i] ) for i in xrange(evtrack.size())  ]
+
+
+# LARCV
+io_cv = larcv.IOManager(larcv.IOManager.kREAD)
+io_cv.add_in_file( input_larcv )
+io_cv.initialize()
+io_cv.read_entry(0)
+
+# IMAGE2D
+ev_img = io_cv.get_data( larcv.kProductImage2D, "wire" )
+img2d_v = ev_img.Image2DArray()
+
+ev_pix = io_cv.get_data( larcv.kProductPixel2D, "allreco" )
+pix_meta_v = [ ev_pix.ClusterMetaArray(p) for p in xrange(3) ]
+pix_arr_v = [ ev_pix.Pixel2DClusterArray()[p] for p in xrange(3) ]
+pixtraces = [ lardly.data.visualize_larcv_pixel2dcluster( pix_arr_v[0][i], pix_meta_v[0][0] ) for i in xrange(pix_arr_v[0].size()) ]
 
 detdata = lardly.DetectorOutline()
 
@@ -44,6 +62,7 @@ axis_template = {
 
 plot_layout = {
     "title": "",
+    "height":800,
     "margin": {"t": 0, "b": 0, "l": 0, "r": 0},
     "font": {"size": 12, "color": "white"},
     "showlegend": False,
@@ -60,19 +79,41 @@ plot_layout = {
     },
 }
 
+testline = {
+    "type":"scattergl",
+    "x":[200,400,400,800],
+    "y":[3200,3400,3800,4400],
+    "mode":"markers",
+    #"line":{"color":"rgb(255,255,255)","width":4},
+    "marker":dict(size=10, symbol="triangle-up",color="rgb(255,255,255)"),
+    }
 
-app.layout = html.Div(
-    [
+app.layout = html.Div( [
+    html.Div( [
         dcc.Graph(
-            id="brain-graph",
+            id="det3d",
             figure={
                 "data": detdata.getlines()+track_v,
                 "layout": plot_layout,
             },
             config={"editable": True, "scrollZoom": False},
-        )
-    ],
-    className="graph__container")
+        )],
+              className="graph__container"),
+    html.Div( [
+        dcc.Graph(
+            id="image2d_plane0",
+            figure={"data":[ lardly.data.visualize_larcv_image2d( img2d_v[0] )]+pixtraces,
+                    "layout":{"height":800} }),
+            #figure={"data":[ lardly.data.visualize_larcv_image2d( img2d_v[0] ) ]}),
+            #figure={"data":[ testline ]}),
+        #dcc.Graph(
+        #    id="image2d_plane1",
+        #    figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[1] )]}),
+        #dcc.Graph(
+        #    id="image2d_plane2",
+        #    figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[2] )]}),
+        ] ),
+    ] )
 
 if __name__ == "__main__":
     app.run_server(debug=True)

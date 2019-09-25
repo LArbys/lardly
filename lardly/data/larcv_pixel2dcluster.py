@@ -5,7 +5,7 @@ from larcv import larcv
 def visualize_larcv_pixel2dcluster(cluster,meta):
     npixels = cluster.size()
     pixnp = np.zeros( (npixels,2) )
-    for ipt in xrange(npixels):
+    for ipt in range(npixels):
         col = cluster[ipt].X()
         row = cluster[ipt].Y()
         wire = meta.pos_x(col)
@@ -24,6 +24,5 @@ def visualize_larcv_pixel2dcluster(cluster,meta):
                   "size":4,
                   "symbol":"square-open"}
     }
-    
+
     return trace
-        

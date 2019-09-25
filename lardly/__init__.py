@@ -1,2 +1,2 @@
-from detectoroutline import *
-import data
+from .detectoroutline import *
+from . import data

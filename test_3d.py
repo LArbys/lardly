@@ -26,7 +26,7 @@ io_ll.go_to(0)
 # TRACK
 evtrack = io_ll.get_data(larlite.data.kTrack,"dltagger_allreco")
 print("number of tracks: ",evtrack.size())
-track_v = [ lardly.data.visualize_larlite_track( evtrack[i] ) for i in xrange(evtrack.size())  ]
+track_v = [ lardly.data.visualize_larlite_track( evtrack[i] ) for i in range(evtrack.size())  ]
 
 
 # LARCV
@@ -40,9 +40,9 @@ ev_img = io_cv.get_data( larcv.kProductImage2D, "wire" )
 img2d_v = ev_img.Image2DArray()
 
 ev_pix = io_cv.get_data( larcv.kProductPixel2D, "allreco" )
-pix_meta_v = [ ev_pix.ClusterMetaArray(p) for p in xrange(3) ]
-pix_arr_v = [ ev_pix.Pixel2DClusterArray()[p] for p in xrange(3) ]
-pixtraces = [ lardly.data.visualize_larcv_pixel2dcluster( pix_arr_v[0][i], pix_meta_v[0][0] ) for i in xrange(pix_arr_v[0].size()) ]
+pix_meta_v = [ ev_pix.ClusterMetaArray(p) for p in range(3) ]
+pix_arr_v = [ ev_pix.Pixel2DClusterArray()[p] for p in range(3) ]
+pixtraces = [ lardly.data.visualize_larcv_pixel2dcluster( pix_arr_v[0][i], pix_meta_v[0][0] ) for i in range(pix_arr_v[0].size()) ]
 
 detdata = lardly.DetectorOutline()
 

@@ -14,35 +14,43 @@ from larcv import larcv
 import lardly
 
 #input_larlite = sys.argv[1]
-input_larlite = "/home/jmills/workdir/michel_files/output_dltagger_larlite.root"
-input_larcv   = "/home/jmills/workdir/michel_files/output_dltagger_larcv.root"
-
+input_larlite = "/home/jmills/workdir/michel_files/tracker_reco_0.root"
+input_larcv   = "/home/jmills/workdir/michel_files/output_dltagger_larcv_masked.root"
+entry = 2
 # LARLITE
 io_ll = larlite.storage_manager(larlite.storage_manager.kREAD)
 io_ll.add_in_filename( input_larlite )
 io_ll.open()
-io_ll.go_to(0)
+io_ll.go_to(entry)
+
+
 
 # TRACK
-evtrack = io_ll.get_data(larlite.data.kTrack,"dltagger_allreco")
+evtrack = io_ll.get_data(larlite.data.kTrack,"trackReco")
+
 print("number of tracks: ",evtrack.size())
 track_v = [ lardly.data.visualize_larlite_track( evtrack[i] ) for i in range(evtrack.size())  ]
-
 
 # LARCV
 io_cv = larcv.IOManager(larcv.IOManager.kREAD)
 io_cv.add_in_file( input_larcv )
 io_cv.initialize()
-io_cv.read_entry(0)
+io_cv.read_entry(entry)
 
 # IMAGE2D
-ev_img = io_cv.get_data( larcv.kProductImage2D, "wire" )
+ev_img = io_cv.get_data( larcv.kProductImage2D, "wire_masked" )
 img2d_v = ev_img.Image2DArray()
 
-ev_pix = io_cv.get_data( larcv.kProductPixel2D, "allreco" )
-pix_meta_v = [ ev_pix.ClusterMetaArray(p) for p in range(3) ]
-pix_arr_v = [ ev_pix.Pixel2DClusterArray()[p] for p in range(3) ]
-pixtraces = [ lardly.data.visualize_larcv_pixel2dcluster( pix_arr_v[0][i], pix_meta_v[0][0] ) for i in range(pix_arr_v[0].size()) ]
+# Vertex
+evpgraph = io_cv.get_data( larcv.kProductPGraph, "bragg_vertex")
+print("number of vertices: ",evpgraph.PGraphArray().size())
+bragg_v = [ lardly.data.visualize_larcv_pgraph( evpgraph.PGraphArray().at(i) ) for i in range(evpgraph.PGraphArray().size())  ]
+
+
+# ev_pix = io_cv.get_data( larcv.kProductPixel2D, "allreco" )
+# pix_meta_v = [ ev_pix.ClusterMetaArray(p) for p in range(3) ]
+# pix_arr_v = [ ev_pix.Pixel2DClusterArray()[p] for p in range(3) ]
+# pixtraces = [ lardly.data.visualize_larcv_pixel2dcluster( pix_arr_v[0][i], pix_meta_v[0][0] ) for i in range(pix_arr_v[0].size()) ]
 
 # detdata = lardly.DetectorOutline()
 
@@ -93,7 +101,7 @@ app.layout = html.Div( [
         dcc.Graph(
             id="det3d",
             figure={
-                "data": track_v,
+                "data": track_v + bragg_v,
                 "layout": plot_layout,
             },
             config={"editable": True, "scrollZoom": False},
@@ -102,7 +110,7 @@ app.layout = html.Div( [
     html.Div( [
         dcc.Graph(
             id="image2d_plane0",
-            figure={"data":[ lardly.data.visualize_larcv_image2d( img2d_v[0] )]+pixtraces,
+            figure={"data":[ lardly.data.visualize_larcv_image2d( img2d_v[0] )], #+pixtraces
                     "layout":{"height":800} }),
         dcc.Graph(
             id="image2d_plane1",

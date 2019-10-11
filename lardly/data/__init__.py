@@ -5,3 +5,4 @@ from .larlite_crthit import *
 from .larlite_crttrack import *
 from .larcv_pgraph import *
 from .larlite_larflowhit import *
+from .larlite_mctrack import *

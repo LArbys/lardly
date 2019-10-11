@@ -4,3 +4,4 @@ from .larcv_pixel2dcluster import *
 from .larlite_crthit import *
 from .larlite_crttrack import *
 from .larcv_pgraph import *
+from .larlite_larflowhit import *

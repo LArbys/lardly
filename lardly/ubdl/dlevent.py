@@ -6,16 +6,15 @@ from larlite import larlite
 from larcv import larcv
 from ublarcvapp import ublarcvapp
 
-from ..data import visualize2d_larcv_pgraph
+from ..data import visualize2d_larcv_pgraph, visualize3d_larcv_pgraph
 from ..data import visualize_larcv_image2d
+from ..data import visualize_larlite_track
+from ..data import visualize3d_larlite_shower
 
 """list of filetypes that can form a complete set"""
 DLEVENT_FILESETS = [ {"larcv":["supera","vertex-larcv"],
-                      "larlite":["tracker-larlite"],
-                      "tickbackward":[True,True],
-                      "larcv-products":[("image2d:wire"),
-                                        ("pgraph:test","pixel2d:test_super","pixel2d:dlshr","partroi:croimerge_clip_union") ]} ]
-                      
+                      "larlite":["tracker-larlite","shower-reco","taggeroutv2-larlite"],
+                      "tickbackward":[True,True],} ]
 
 class DLEvent:
     """class is responsible for loading files for DL event and providing collection of plotly/dash traces for plotting"""
@@ -129,5 +128,29 @@ class DLEvent:
         pgraph_traces2d = visualize2d_larcv_pgraph( ev_pgraph, event_contour_pixels=ev_pclust )
         for p in range(3):
             traces2d[p] += pgraph_traces2d[p]
+
+        # 3D vertices
+        pgraph_traces3d = visualize3d_larcv_pgraph( ev_pgraph )
+
+        traces3d += pgraph_traces3d
+
+        # 3D Track
+        ev_track = self._llio.get_data( larlite.data.kTrack, "trackReco" )
+        track_traces = [ visualize_larlite_track( ev_track.at(x), track_id=x ) for x in range(ev_track.size()) ] # halved due to bug
+        print("dlevent: num tracks={}".format(ev_track.size()))
+        traces3d += track_traces
+
+        # 3D Showers
+        ev_shower = self._llio.get_data( larlite.data.kShower, "showerreco" )
+        shower_traces = [ visualize3d_larlite_shower( ev_shower.at(x) ) for x in range(ev_shower.size()) ]
+        traces3d += shower_traces
+
+        # cosmics
+        ev_thrumu = self._llio.get_data( larlite.data.kTrack, "thrumu3d" )
+        thrumu_traces = [ visualize_larlite_track( ev_thrumu.at(x), track_id="thrumu[{}]".format(x) ) for x in range(ev_thrumu.size()) ]
+        for tt in thrumu_traces:
+            tt["line"]["color"] = 'rgb(255,255,255)'
+            tt["line"]["opacity"] = 0.7
+        traces3d += thrumu_traces
 
         return traces2d, traces3d

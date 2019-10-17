@@ -14,7 +14,7 @@ from lardly.ubdl import DLEvent
 
 dlevt = DLEvent( "../ubdl/testdata/mcc9_v13_nueintrinsic_overlay_run1/complete/" )
 
-traces2d,traces3d = dlevt.get_entry_data( 0 )
+traces2d,traces3d = dlevt.get_entry_data( 7 )
 
 detdata = lardly.DetectorOutline()
 
@@ -64,7 +64,7 @@ app.layout = html.Div( [
         dcc.Graph(
             id="det3d",
             figure={
-                "data": detdata.getlines(),
+                "data": detdata.getlines()+traces3d,
                 "layout": plot_layout,
             },
             config={"editable": True, "scrollZoom": False},

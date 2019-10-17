@@ -6,13 +6,20 @@ larcv.load_pyutil()
 import plotly.graph_objs as go
 from .larcv_pixel2dcluster import visualize_larcv_pixel2dcluster
 
-def visualize3d_larcv_pgraph( pgraph ):
-    npoints = pgraph.NumParticles()
-    xyz = np.zeros( (npoints,3 ) )
-    for ipt in range(npoints):
-        xyz[ipt,0] = pgraph.ParticleArray().at(ipt).X()
-        xyz[ipt,1] = pgraph.ParticleArray().at(ipt).Y()
-        xyz[ipt,2] = pgraph.ParticleArray().at(ipt).Z()
+def visualize3d_larcv_pgraph( event_pgraph ):
+
+    nvertices = event_pgraph.PGraphArray().size()
+    xyz = np.zeros( (nvertices,3 ) )
+    hovertext = []
+    
+    for ipgraph in range(event_pgraph.PGraphArray().size()):
+        pgraph = event_pgraph.PGraphArray().at(ipgraph)
+        print("vtx npoints=",pgraph.ParticleArray().size())
+        roi = pgraph.ParticleArray().at(0)
+        xyz[ipgraph,0] = pgraph.ParticleArray().at(0).X()
+        xyz[ipgraph,1] = pgraph.ParticleArray().at(0).Y()
+        xyz[ipgraph,2] = pgraph.ParticleArray().at(0).Z()
+        hovertext.append("vtx[{}]".format(ipgraph))
 
     points = {
         "type":"scatter3d",
@@ -20,12 +27,11 @@ def visualize3d_larcv_pgraph( pgraph ):
         "y": xyz[:,1],
         "z": xyz[:,2],
         'mode': 'markers',
-        'marker': {'size': 4},
-        "name":"",
-        "line":{"color":"rgb(0,0,255)","width":2},
+        'marker': {'size': 5,'color':'rgb(0,0,255)'},
+        "hovertext":hovertext,
     }
 
-    return points
+    return [points]
 
 def visualize2d_larcv_pgraph( event_pgraph, event_contour_pixels=None ):
 

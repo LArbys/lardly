@@ -4,7 +4,7 @@ import os,sys,argparse
 parser = argparse.ArgumentParser("test_3d lardly viewer")
 parser.add_argument("-ll","--larlite",required=True,type=str,help="larlite file with dltagger_allreco tracks")
 parser.add_argument("-e","--entry",required=True,type=int,help="Entry to load")
-parser.add_argument("-t","--threshold",type=float,default=0.8,help="score threshold on hits")
+parser.add_argument("-p","--minprob",type=float,default=0.5,help="score threshold on hits")
 
 args = parser.parse_args(sys.argv[1:])
 
@@ -33,9 +33,9 @@ io_ll.go_to(ientry)
 # OPFLASH
 ev_lfhits_y2u = io_ll.get_data(larlite.data.kLArFlow3DHit,"larmatchy2u")
 ev_lfhits_y2v = io_ll.get_data(larlite.data.kLArFlow3DHit,"larmatchy2v")
-print("num hits: y2u=",ev_lfhits_y2u.size()," y2v=",ev_lfhits_y2v.size(),"threshold=",args.threshold)
-lfhits_v =  [ lardly.data.visualize_larlite_larflowhits( ev_lfhits_y2u, "larmatchy2u", score_threshold=args.threshold) ]
-lfhits_v += [ lardly.data.visualize_larlite_larflowhits( ev_lfhits_y2v, "larmatchy2v", score_threshold=args.threshold) ]
+print("num hits: y2u=",ev_lfhits_y2u.size()," y2v=",ev_lfhits_y2v.size(),"threshold=",args.minprob)
+lfhits_v =  [ lardly.data.visualize_larlite_larflowhits( ev_lfhits_y2u, "larmatchy2u", score_threshold=args.minprob) ]
+lfhits_v += [ lardly.data.visualize_larlite_larflowhits( ev_lfhits_y2v, "larmatchy2v", score_threshold=args.minprob) ]
 
 detdata = lardly.DetectorOutline()
 

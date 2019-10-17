@@ -21,9 +21,9 @@ def visualize_larcv_pixel2dcluster(cluster,meta,flip_tick=False):
         "type":"scatter",
         "x":pixnp[:,0],
         "y":pixnp[:,1],
-        "opacity":0.25,
+        "opacity":0.8,
         "mode":"marker",
-        "marker":{"color":"rgb(0,255,255)",
+        "marker":{"color":"rgb(255,255,255)",
                   "size":4},
     }
 

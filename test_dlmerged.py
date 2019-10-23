@@ -19,7 +19,7 @@ from larlite import larlite
 from larcv import larcv
 import lardly
 
-ientry        = args.entry
+ientry = args.entry
 
 HAS_TRACKS = True
 HAS_PIXELS = False
@@ -30,6 +30,11 @@ HAS_PIXELS = False
 # LARLITE
 io_ll = larlite.storage_manager(larlite.storage_manager.kREAD)
 io_ll.add_in_filename( args.input_file )
+
+# BONUS: larflow hits
+if True:
+    io_ll.add_in_filename( "output_larmatch_dlrecotest.root" )
+    
 io_ll.open()
 io_ll.go_to(ientry)
 
@@ -76,6 +81,12 @@ if True:
     shower_traces = [ lardly.data.visualize3d_larlite_shower( ev_shower.at(x) ) for x in range(ev_shower.size()) ]
     traces3d += shower_traces
 
+    shower2d_traces = [ lardly.data.visualize2d_larlite_shower( ev_shower.at(x) ) for x in range(ev_shower.size()) ]
+    for shower2d_trace in shower2d_traces:
+        #print("shower trace: ",shower2d_trace)
+        for p in range(3):
+            traces2d[p].append( shower2d_trace[p] )
+
 # COSMIC TRACKS
 if True:
     ev_cosmics = io_ll.get_data(larlite.data.kTrack,"mergedthrumu3d")
@@ -85,6 +96,16 @@ if True:
 if False:
     print("VISUALIZE MCTRACKS")
     mctrack_v = lardly.data.visualize_larlite_event_mctrack( io_ll.get_data(larlite.data.kMCTrack, "mcreco"))
+
+# LARFLOW HITS
+if True:
+    print("Visualize LArFlow Hits")
+    ev_lfhits_y2u = io_ll.get_data(larlite.data.kLArFlow3DHit,"larmatchy2u")
+    ev_lfhits_y2v = io_ll.get_data(larlite.data.kLArFlow3DHit,"larmatchy2v")
+    print("  num hits: y2u=",ev_lfhits_y2u.size()," y2v=",ev_lfhits_y2v.size())
+    lfhits_v =  [ lardly.data.visualize_larlite_larflowhits( ev_lfhits_y2u, "larmatchy2u" ) ]
+    lfhits_v += [ lardly.data.visualize_larlite_larflowhits( ev_lfhits_y2v, "larmatchy2v" ) ]
+    traces3d += lfhits_v
 
 
 # IMAGE2D

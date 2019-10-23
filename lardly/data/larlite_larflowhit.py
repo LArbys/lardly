@@ -6,7 +6,7 @@ def visualize_larlite_larflowhits( larlite_event_larflowhit, name="",score_thres
     npoints = larlite_event_larflowhit.size()
 
     from larlite import larutil
-    dv = larutil.LArProperties.GetME().DriftVelocity()    
+    dv = larutil.LArProperties.GetME().DriftVelocity()
 
     xyz = np.zeros( (npoints,4 ) )
     ptsused = 0
@@ -20,10 +20,10 @@ def visualize_larlite_larflowhits( larlite_event_larflowhit, name="",score_thres
         xyz[ptsused,1] = hit[1]
         xyz[ptsused,2] = hit[2]
         xyz[ptsused,3] = hit.track_score
-        #print hit[0],hit[1],hit[2]
+        #print (hit[0],hit[1],hit[2])
         ptsused += 1
 
-    print "num larflow hits=",npoints," abovethreshold(plotted)=",ptsused
+    print("num larflow hits=",npoints," abovethreshold(plotted)=",ptsused)
     larflowhits = {
         "type":"scatter3d",
         "x": xyz[:ptsused,0],

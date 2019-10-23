@@ -30,6 +30,8 @@ evtrack = io_ll.get_data(larlite.data.kTrack,"trackReco")
 
 print("number of tracks: ",evtrack.size())
 track_v = [ lardly.data.visualize_larlite_track( evtrack[i] ) for i in range(evtrack.size())  ]
+vtx_v =  [ lardly.data.visualize_larlite_track_vtx( evtrack[i] ) for i in range(evtrack.size())  ]
+end_v =  [ lardly.data.visualize_larlite_track_end( evtrack[i] ) for i in range(evtrack.size())  ]
 
 # LARCV
 io_cv = larcv.IOManager(larcv.IOManager.kREAD)
@@ -44,7 +46,7 @@ img2d_v = ev_img.Image2DArray()
 # Vertex
 evpgraph = io_cv.get_data( larcv.kProductPGraph, "bragg_vertex")
 print("number of vertices: ",evpgraph.PGraphArray().size())
-bragg_v = [ lardly.data.visualize_larcv_pgraph( evpgraph.PGraphArray().at(i) ) for i in range(evpgraph.PGraphArray().size())  ]
+bragg_v = [ lardly.data.visualize3d_larcv_pgraph( evpgraph )  ]
 
 
 # ev_pix = io_cv.get_data( larcv.kProductPixel2D, "allreco" )
@@ -101,7 +103,7 @@ app.layout = html.Div( [
         dcc.Graph(
             id="det3d",
             figure={
-                "data": track_v + bragg_v,
+                "data": track_v + bragg_v + vtx_v + end_v,
                 "layout": plot_layout,
             },
             config={"editable": True, "scrollZoom": False},

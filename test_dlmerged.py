@@ -33,7 +33,7 @@ io_ll.add_in_filename( args.input_file )
 
 # BONUS: larflow hits
 if True:
-    io_ll.add_in_filename( "output_larmatch_dlrecotest.root" )
+    io_ll.add_in_filename( "../ubdl/testdata/mcc9_run3_bnb1e19/output_larmatch.root" )
     
 io_ll.open()
 io_ll.go_to(ientry)
@@ -50,6 +50,9 @@ io_cv.read_entry(ientry)
 # TRACE CONTAINERS
 traces3d = []
 traces2d = {0:[],1:[],2:[]}
+
+ev_adc = io_cv.get_data( larcv.kProductImage2D, "wire" )
+img_v  = ev_adc.Image2DArray()
 
 # VERTEX
 if True:
@@ -71,7 +74,12 @@ if True:
 if True:
     evtrack = io_ll.get_data(larlite.data.kTrack,"trackReco")
     print("number of tracks: ",evtrack.size())
-    traces3d += [ lardly.data.visualize_larlite_track( evtrack[i] ) for i in range(evtrack.size())  ]
+    traces3d += [ lardly.data.visualize_larlite_track( evtrack[i], color=(125,255,255) ) for i in range(evtrack.size())  ]
+
+    for itrack in range(evtrack.size()):
+        track_traces = lardly.data.visualize2d_larlite_track( evtrack[itrack], img_v, color=(125,255,255) )
+        for p in range(3):
+            traces2d[p].append( track_traces[p] )
 
 # SHOWER
 if True:
@@ -90,7 +98,7 @@ if True:
 # COSMIC TRACKS
 if True:
     ev_cosmics = io_ll.get_data(larlite.data.kTrack,"mergedthrumu3d")
-    traces3d += [ lardly.data.visualize_larlite_track( ev_cosmics[i] ) for i in range(ev_cosmics.size())  ]
+    traces3d += [ lardly.data.visualize_larlite_track( ev_cosmics[i], color=(255,0,0) ) for i in range(ev_cosmics.size())  ]
 
 # MCTRACK
 if False:

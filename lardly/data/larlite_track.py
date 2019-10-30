@@ -75,7 +75,7 @@ def visualize_larlite_track_end( larlite_track ):
 
     return End
 
-def visualize2d_larlite_track( larlite_track, larcv_image2d_v, trackid=None, color=None ):
+def visualize2d_larlite_track( larlite_track, larcv_image2d_v, track_id=None, color=None ):
     """ plot path projected into wire planes """
 
     npoints = larlite_track.NumberTrajectoryPoints()
@@ -87,10 +87,10 @@ def visualize2d_larlite_track( larlite_track, larcv_image2d_v, trackid=None, col
         color = "rgb({},{},{})".format(color[0],color[1],color[2])
     
     name = ""
-    if type(trackid) is str:
-        name = trackid
-    elif type(trackid) is int:
-        name = "trackid[{}]".format(trackid)
+    if type(track_id) is str:
+        name = track_id
+    elif type(track_id) is int:
+        name = "id[{}]".format(track_id)
         
     traces2d = {}
     for p in range(larcv_image2d_v.size()):

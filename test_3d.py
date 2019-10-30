@@ -22,14 +22,11 @@ from larcv import larcv
 import lardly
 
 
-#input_larlite = sys.argv[1]
-input_larlite = "output_dltagger_larlite.root"
-input_larcv   = "output_dltagger_larcv.root"
 input_larlite = args.larlite
 input_larcv   = args.larcv
 ientry        = args.entry
 
-HAS_TRACKS = False
+HAS_TRACKS = True
 HAS_PIXELS = False
 
 # LARLITE
@@ -38,20 +35,28 @@ io_ll.add_in_filename( input_larlite )
 io_ll.open()
 io_ll.go_to(ientry)
 
+
+traces3d = []
+traces2d = {0:[],1:[],2:[]}
+
 # TRACK
 if HAS_TRACKS:
-    evtrack = io_ll.get_data(larlite.data.kTrack,"dltagger_allreco")
+    #evtrack = io_ll.get_data(larlite.data.kTrack,"dltagger_allreco")
+    evtrack = io_ll.get_data(larlite.data.kTrack,"trackReco")
     print("number of tracks: ",evtrack.size())
-    track_v = [ lardly.data.visualize_larlite_track( evtrack[i] ) for i in range(evtrack.size())  ]
+    track_v = [ lardly.data.visualize_larlite_track( evtrack[i], track_id=i ) for i in range(evtrack.size())  ]
+    traces3d += track_v
 
 # MCTRACK
 if args.mctrack!="":
     print("VISUALIZE MCTRACKS")
     mctrack_v = lardly.data.visualize_larlite_event_mctrack( io_ll.get_data(larlite.data.kMCTrack, "mcreco"))
+    traces3d += mctrack_v
 
 # LARCV
-io_cv = larcv.IOManager(larcv.IOManager.kREAD)
+io_cv = larcv.IOManager(larcv.IOManager.kREAD,"larcv",larcv.IOManager.kTickBackward)
 io_cv.add_in_file( input_larcv )
+io_cv.reverse_all_products()
 io_cv.initialize()
 io_cv.read_entry(ientry)
 
@@ -65,17 +70,13 @@ if HAS_PIXELS:
     pix_arr_v = [ ev_pix.Pixel2DClusterArray()[p] for p in range(3) ]
     pixtraces = [ lardly.data.visualize_larcv_pixel2dcluster( pix_arr_v[0][i], pix_meta_v[0][0] ) for i in range(pix_arr_v[0].size()) ]
 
-# COMBINE TRACES: 3D VIEWER
-traces3d = []
 if HAS_TRACKS:
-    traces3d += track_v
-if args.mctrack!="":
-    traces3d += mctrack_v
-
-# COMBINE TRACES: 2D VIEWER
-traces2d = []
-if HAS_PIXELS:
-    traces2d += pixtraces
+    for itrack in range(evtrack.size()):
+        print("track[%d] len=%d"%(itrack,evtrack[itrack].NumberTrajectoryPoints()))
+        track_traces = lardly.data.visualize2d_larlite_track( evtrack[itrack], img2d_v, color=(125,255,255), track_id=itrack )
+        for p in range(3):
+            traces2d[p].append( track_traces[p] )
+            
 
 detdata = lardly.DetectorOutline()
 
@@ -135,15 +136,15 @@ app.layout = html.Div( [
     html.Div( [
         dcc.Graph(
             id="image2d_plane0",
-            figure={"data":[ lardly.data.visualize_larcv_image2d( img2d_v[0] )]+traces2d,
+            figure={"data":[ lardly.data.visualize_larcv_image2d( img2d_v[0] )]+traces2d[0],
                     "layout":{"height":800} }),
         dcc.Graph(
             id="image2d_plane1",
-            figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[1] )],
+            figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[1] )]+traces2d[1],
                     "layout":{"height":800}}),
         dcc.Graph(
             id="image2d_plane2",
-            figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[2] )],
+            figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[2] )]+traces2d[2],
                     "layout":{"height":800}}),
         ] ),
     ] )

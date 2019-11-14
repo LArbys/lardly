@@ -6,7 +6,7 @@ def extract_mctrackpts( mctrack, sce=None ):
 
     # convert mctrack points to image pixels
     steps_np  = np.zeros( (mctrack.size(),3) )
-    for istep in xrange(mctrack.size()):
+    for istep in range(mctrack.size()):
         step = mctrack.at(istep)
         t = step.T()
 
@@ -27,7 +27,7 @@ def visualize_larlite_event_mctrack( event_mctrack ):
             continue
 
         # cosmic origin
-        color = 'rgb(225,0,0)'
+        color = 'rgb(0,0,255)'
         if mctrack.Origin()==1:
             # neutrino pixels
             color = 'rgb(0,255,255)'

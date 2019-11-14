@@ -7,4 +7,5 @@ from .larlite_crthit import *
 from .larlite_crttrack import *
 from .larlite_larflowhit import *
 from .larlite_mctrack import *
+from .larlite_mcshower import *
 from .larlite_shower import *

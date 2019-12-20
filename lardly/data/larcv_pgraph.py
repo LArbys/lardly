@@ -6,15 +6,16 @@ larcv.load_pyutil()
 import plotly.graph_objs as go
 from .larcv_pixel2dcluster import visualize_larcv_pixel2dcluster
 
-def visualize3d_larcv_pgraph( event_pgraph ):
-
+def visualize3d_larcv_pgraph( event_pgraph , color=None  ):
+    if color is None:
+        color = "rgb(0,0,255)"
+    else:
+        color = "rgb({},{},{})".format(color[0],color[1],color[2])
     nvertices = event_pgraph.PGraphArray().size()
     xyz = np.zeros( (nvertices,3 ) )
     hovertext = []
-    
     for ipgraph in range(event_pgraph.PGraphArray().size()):
         pgraph = event_pgraph.PGraphArray().at(ipgraph)
-        print("vtx npoints=",pgraph.ParticleArray().size())
         roi = pgraph.ParticleArray().at(0)
         xyz[ipgraph,0] = pgraph.ParticleArray().at(0).X()
         xyz[ipgraph,1] = pgraph.ParticleArray().at(0).Y()
@@ -27,20 +28,23 @@ def visualize3d_larcv_pgraph( event_pgraph ):
         "y": xyz[:,1],
         "z": xyz[:,2],
         'mode': 'markers',
-        'marker': {'size': 5,'color':'rgb(0,0,255)'},
+        'marker': {'size': 3,'color':color},
         "hovertext":hovertext,
     }
 
     return [points]
 
-def visualize2d_larcv_pgraph( event_pgraph, event_contour_pixels=None ):
-
+def visualize2d_larcv_pgraph( event_pgraph, event_contour_pixels=None, color=None):
+    if color is None:
+        color = "rgb(255,165,0)"
+    else:
+        color = "rgb({},{},{})".format(color[0],color[1],color[2])
     import ROOT
     from ROOT import std
     from larlite import larutil
-    
+
     traces2d = {0:[],1:[],2:[]}
-    
+
     pgraph_v = event_pgraph.PGraphArray()
     vertex_np = np.zeros( (pgraph_v.size(),3,2) ) # vertex locations [vertex,plane,(row,col)]
     hovertext = []
@@ -57,7 +61,7 @@ def visualize2d_larcv_pgraph( event_pgraph, event_contour_pixels=None ):
         vertex[0] = roi.X()
         vertex[1] = roi.Y()
         vertex[2] = roi.Z()
-        
+
         vertex_tick = 3200 + roi.X()/larutil.LArProperties.GetME().DriftVelocity()/0.5
 
         print("vertex[{}]: nparticle={} nclusters={} tick={}".format(vtx_idx,nparticles,nclusters,vertex_tick))        
@@ -68,7 +72,7 @@ def visualize2d_larcv_pgraph( event_pgraph, event_contour_pixels=None ):
                 wire=0
             elif wire>=3456:
                 wire=3455
-            vertex_np[vtx_idx,p,0] = wire                
+            vertex_np[vtx_idx,p,0] = wire
             vertex_np[vtx_idx,p,1] = vertex_tick
             #print("vertex[{}] plane={} wire={}".format(vtx_idx,p,wire))
 
@@ -80,8 +84,8 @@ def visualize2d_larcv_pgraph( event_pgraph, event_contour_pixels=None ):
                     meta       = event_contour_pixels.ClusterMetaArray(p).at(clust_idx)
                     clust_trace = visualize_larcv_pixel2dcluster( pixcluster, meta, flip_tick=True )
                     traces2d[p].append(clust_trace)
-                
-        
+
+
 
     for p in range(3):
         vertex_trace = {
@@ -90,7 +94,7 @@ def visualize2d_larcv_pgraph( event_pgraph, event_contour_pixels=None ):
             "y": vertex_np[:,p,1],
             'hovertext':hovertext,
             'mode': 'markers',
-            'marker': {'size':10},
+            'marker': {'size': 6,'color':color},
         }
         traces2d[p].append( vertex_trace )
 

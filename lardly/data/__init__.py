@@ -8,3 +8,4 @@ from .larlite_crttrack import *
 from .larlite_larflowhit import *
 from .larlite_mctrack import *
 from .larlite_shower import *
+from .larlite_spacepoints import *

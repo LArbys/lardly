@@ -4,7 +4,7 @@ import os,sys,argparse
 parser = argparse.ArgumentParser("test_3d lardly viewer")
 parser.add_argument("-ll","--larlite",required=True,type=str,help="larlite file with dltagger_allreco tracks")
 parser.add_argument("-e","--entry",required=True,type=int,help="Entry to load")
-parser.add_argument("-p","--minprob",type=float,default=0.0,help="score threshold on hits")
+parser.add_argument("-lf","--larflow",type=str,default=None,help="Provide input larflow file (optional)")
 
 args = parser.parse_args(sys.argv[1:])
 
@@ -27,13 +27,27 @@ ientry        = args.entry
 # LARLITE
 io_ll = larlite.storage_manager(larlite.storage_manager.kREAD)
 io_ll.add_in_filename( input_larlite )
+if args.larflow is not None:
+    io_ll.add_in_filename( args.larflow )
 io_ll.open()
 io_ll.go_to(ientry)
 
-# OPFLASH
-ev_lfhits = io_ll.get_data(larlite.data.kLArFlow3DHit,"larmatch")
-print("num hits: y2u=",ev_lfhits.size(),"threshold=",args.minprob)
-lfhits_v =  [ lardly.data.visualize_larlite_larflowhits( ev_lfhits, "larmatch", score_threshold=args.minprob) ]
+# COLLECT TRACES
+traces3d = []
+
+# WC-TAGGER OUTPUT
+ev_hits = io_ll.get_data(larlite.data.kSpacePoint,"portedSpacePointsThreshold")
+trace_hits_v =  [ lardly.data.visualize_larlite_spacepoints( ev_hits, opacity=0.25 ) ]
+traces3d += trace_hits_v
+
+# LARFLOW (IF GIVEN)
+if args.larflow is not None:
+    print("Visualize LArFlow Hits")
+    ev_lfhits = io_ll.get_data(larlite.data.kLArFlow3DHit,"larmatch")
+    print("  num larflow hits: ",ev_lfhits.size())
+    lfhits_v =  [ lardly.data.visualize_larlite_larflowhits( ev_lfhits, "larmatch" ) ]
+    traces3d += lfhits_v
+
 
 detdata = lardly.DetectorOutline()
 
@@ -70,13 +84,12 @@ plot_layout = {
     },
 }
 
-
 app.layout = html.Div( [
     html.Div( [
         dcc.Graph(
             id="det3d",
             figure={
-                "data": detdata.getlines()+lfhits_v,
+                "data": detdata.getlines()+traces3d,
                 "layout": plot_layout,
             },
             config={"editable": True, "scrollZoom": False},

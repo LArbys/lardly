@@ -4,6 +4,7 @@ import os,sys,argparse
 parser = argparse.ArgumentParser("test_3d lardly viewer w/ DL Merged File")
 parser.add_argument("-i","--input-file",required=True,type=str,help="dlmerged file")
 parser.add_argument("-e","--entry",required=True,type=int,help="Entry to load")
+parser.add_argument("-lf","--larflow",type=str,default=None,help="Provide input larflow file (optional)")
 
 args = parser.parse_args(sys.argv[1:])
 
@@ -23,6 +24,9 @@ ientry = args.entry
 
 HAS_TRACKS = True
 HAS_PIXELS = False
+HAS_LARMATCH = False
+if args.larflow is not None:
+    HAS_LARMATCH = True
 
 # ======================================
 # IO
@@ -32,8 +36,8 @@ io_ll = larlite.storage_manager(larlite.storage_manager.kREAD)
 io_ll.add_in_filename( args.input_file )
 
 # BONUS: larflow hits
-if True:
-    io_ll.add_in_filename( "../ubdl/testdata/mcc9_run3_bnb1e19/output_larmatch.root" )
+if HAS_LARMATCH:
+    io_ll.add_in_filename( args.larflow )
     
 io_ll.open()
 io_ll.go_to(ientry)
@@ -72,7 +76,7 @@ if True:
 
 # PATICLE TRACK
 if True:
-    evtrack = io_ll.get_data(larlite.data.kTrack,"trackReco")
+    evtrack = io_ll.get_data(larlite.data.kTrack,"trackReco_sceadded")
     print("number of tracks: ",evtrack.size())
     traces3d += [ lardly.data.visualize_larlite_track( evtrack[i], color=(125,255,255) ) for i in range(evtrack.size())  ]
 
@@ -91,7 +95,7 @@ if True:
 
     shower2d_traces = [ lardly.data.visualize2d_larlite_shower( ev_shower.at(x) ) for x in range(ev_shower.size()) ]
     for shower2d_trace in shower2d_traces:
-        #print("shower trace: ",shower2d_trace)
+        print("shower trace: ",shower2d_trace)
         for p in range(3):
             traces2d[p].append( shower2d_trace[p] )
 
@@ -106,13 +110,11 @@ if False:
     mctrack_v = lardly.data.visualize_larlite_event_mctrack( io_ll.get_data(larlite.data.kMCTrack, "mcreco"))
 
 # LARFLOW HITS
-if True:
+if HAS_LARMATCH:
     print("Visualize LArFlow Hits")
-    ev_lfhits_y2u = io_ll.get_data(larlite.data.kLArFlow3DHit,"larmatchy2u")
-    ev_lfhits_y2v = io_ll.get_data(larlite.data.kLArFlow3DHit,"larmatchy2v")
-    print("  num hits: y2u=",ev_lfhits_y2u.size()," y2v=",ev_lfhits_y2v.size())
-    lfhits_v =  [ lardly.data.visualize_larlite_larflowhits( ev_lfhits_y2u, "larmatchy2u" ) ]
-    lfhits_v += [ lardly.data.visualize_larlite_larflowhits( ev_lfhits_y2v, "larmatchy2v" ) ]
+    ev_lfhits = io_ll.get_data(larlite.data.kLArFlow3DHit,"larmatch")
+    print("  num larflow hits: ",ev_lfhits.size())
+    lfhits_v =  [ lardly.data.visualize_larlite_larflowhits( ev_lfhits, "larmatch" ) ]
     traces3d += lfhits_v
 
 

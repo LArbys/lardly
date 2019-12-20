@@ -1,7 +1,7 @@
 import os,sys
 import numpy as np
 
-def visualize_larlite_larflowhits( larlite_event_larflowhit, name="",score_threshold=0.9 ):
+def visualize_larlite_larflowhits( larlite_event_larflowhit, name="",score_threshold=0 ):
 
     npoints = larlite_event_larflowhit.size()
 

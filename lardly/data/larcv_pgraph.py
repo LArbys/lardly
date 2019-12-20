@@ -44,6 +44,7 @@ def visualize2d_larcv_pgraph( event_pgraph, event_contour_pixels=None ):
     pgraph_v = event_pgraph.PGraphArray()
     vertex_np = np.zeros( (pgraph_v.size(),3,2) ) # vertex locations [vertex,plane,(row,col)]
     hovertext = []
+    print("num vertices=",pgraph_v.size())
     for vtx_idx in range(pgraph_v.size()):
         pgraph = pgraph_v[vtx_idx]
         nparticles = pgraph.NumParticles()
@@ -59,7 +60,7 @@ def visualize2d_larcv_pgraph( event_pgraph, event_contour_pixels=None ):
         
         vertex_tick = 3200 + roi.X()/larutil.LArProperties.GetME().DriftVelocity()/0.5
 
-        #print("vertex[{}]: nparticle={} nclusters={} tick={}".format(vtx_idx,nparticles,nclusters,vertex_tick))        
+        print("vertex[{}]: nparticle={} nclusters={} tick={}".format(vtx_idx,nparticles,nclusters,vertex_tick))        
 
         for p in range(3):
             wire = larutil.Geometry.GetME().NearestWire( vertex, p )

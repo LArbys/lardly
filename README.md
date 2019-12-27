@@ -20,6 +20,12 @@ This script plots most of the reconstruction quantities in the DL reco. chain.
 
 This shows how one setups menu buttons.
 
+### `test_crt.py`
+
+Example for plotting CRT.
+
+![Image](screenshot_test_crt.png?raw=true)
+
 # Installation instructions
 
 Follow [this page](https://dash.plot.ly/installation) to install `plotly dash`.

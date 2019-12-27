@@ -1,12 +1,15 @@
 import os,sys
 import numpy as np
 
-def visualize_larlite_crttrack( larlite_crttrack ):
+def visualize_larlite_crttrack( larlite_crttrack, notimeshift=False ):
 
-    from larlite import larutil
-    dv = larutil.LArProperties.GetME().DriftVelocity()    
-    t_usec = larlite_crttrack.ts2_ns*0.001
-    dx = t_usec*dv
+    if notimeshift:
+        dx = 0.0
+    else:
+        from larlite import larutil
+        dv = larutil.LArProperties.GetME().DriftVelocity()    
+        t_usec = larlite_crttrack.ts2_ns*0.001
+        dx = t_usec*dv
     
     xyz = np.zeros( (1,4 ) )
     xyz[0,0] = larlite_crttrack.x_pos + dx
@@ -26,7 +29,7 @@ def visualize_larlite_crttrack( larlite_crttrack ):
 
     return crttrack
 
-def visualize_larlite_event_crttrack( larlite_event_crttrack, name="", window=[-500.0,2700] ):
+def visualize_larlite_event_crttrack( larlite_event_crttrack, name="", window=[-500.0,2700], notimeshift=False ):
 
     from larlite import larutil
     dv = larutil.LArProperties.GetME().DriftVelocity()    
@@ -36,8 +39,11 @@ def visualize_larlite_event_crttrack( larlite_event_crttrack, name="", window=[-
     crttracks_v = []
     for itrack in range(ntracks):
         crttrack = larlite_event_crttrack.at(itrack)
-        t_usec = 0.5*(crttrack.ts2_ns_h1 + crttrack.ts2_ns_h2)*0.001
-        dx = t_usec*dv
+        if notimeshift:
+            dx = 0.0
+        else:
+            t_usec = 0.5*(crttrack.ts2_ns_h1 + crttrack.ts2_ns_h2)*0.001
+            dx = t_usec*dv
         xyz = np.zeros( (2,3 ) )
         xyz[0,0] = crttrack.x1_pos + dx
         xyz[0,1] = crttrack.y1_pos

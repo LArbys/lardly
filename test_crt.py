@@ -4,6 +4,7 @@ import os,sys,argparse
 parser = argparse.ArgumentParser("test_3d lardly viewer")
 parser.add_argument("-ll","--larlite",required=True,type=str,help="larlite file with dltagger_allreco tracks")
 parser.add_argument("-e","--entry",required=True,type=int,help="Entry to load")
+parser.add_argument("-ns","--no-timeshift",action="store_true",default=False,help="Do not apply time-shift")
 
 args = parser.parse_args(sys.argv[1:])
 
@@ -43,17 +44,18 @@ traces_v = []
 
 # CRT HITS
 evhits = io_ll.get_data(larlite.data.kCRTHit,"crthitcorr")
-crthit_v = [ lardly.data.visualize_larlite_event_crthit( evhits, "crthitcorr") ]
+crthit_v = [ lardly.data.visualize_larlite_event_crthit( evhits, "crthitcorr", notimeshift=args.no_timeshift) ]
 filtered_crthit_v = lardly.ubdl.filter_crthits_wopreco( evopflash_beam, evopflash_cosmic, evhits )
-vis_filtered_crthit_v = [ lardly.data.visualize_larlite_crthit( x ) for x in filtered_crthit_v ]
+vis_filtered_crthit_v = [ lardly.data.visualize_larlite_crthit( x, notimeshift=args.no_timeshift ) for x in filtered_crthit_v ]
 traces_v += vis_filtered_crthit_v
 
 # CRT TRACKS
 evtracks   = io_ll.get_data(larlite.data.kCRTTrack,"crttrack")
-crttrack_v = lardly.data.visualize_larlite_event_crttrack( evtracks, "crttrack")
+crttrack_v = lardly.data.visualize_larlite_event_crttrack( evtracks, "crttrack", notimeshift=args.no_timeshift)
 traces_v += crttrack_v
 
 detdata = lardly.DetectorOutline()
+crtdet  = lardly.CRTOutline()
 
 app = dash.Dash(
     __name__,
@@ -102,7 +104,7 @@ app.layout = html.Div( [
         dcc.Graph(
             id="det3d",
             figure={
-                "data": detdata.getlines()+traces_v,
+                "data": detdata.getlines()+crtdet.getlines()+traces_v,
                 "layout": plot_layout,
             },
             config={"editable": True, "scrollZoom": False},

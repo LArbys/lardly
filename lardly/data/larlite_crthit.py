@@ -40,12 +40,13 @@ def visualize_larlite_event_crthit( larlite_event_crthit, name="", window=[-500.
     from larlite import larutil
     dv = larutil.LArProperties.GetME().DriftVelocity()    
     
-    xyz = np.zeros( (num_in_win,3 ) )
+    xyz = np.zeros( (num_in_win,4 ) )
     for ipt,idx in enumerate(hit_index):
         crthit = larlite_event_crthit.at(idx)
         xyz[ipt,0] = crthit.x_pos + dv*0.001*crthit.ts2_ns
         xyz[ipt,1] = crthit.y_pos
         xyz[ipt,2] = crthit.z_pos
+        xyz[ipt,3] = (float(crthit.plane)+1.0)/4.0
 
     crthits = {
         "type":"scatter3d",
@@ -54,7 +55,7 @@ def visualize_larlite_event_crthit( larlite_event_crthit, name="", window=[-500.
         "z": xyz[:,2],
         "mode":"markers",
         "name":"crthits:{}".format(name),
-        "marker":{"color":"rgb(0,225,225)","size":4,"opacity":0.8},
+        "marker":{"color":xyz[:,3],"size":4,"opacity":0.8,"colorscale":"Oryel"},
     }
 
     return crthits

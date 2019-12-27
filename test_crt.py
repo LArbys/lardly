@@ -33,20 +33,25 @@ io_ll.go_to(ientry)
 evopflash_beam   = io_ll.get_data(larlite.data.kOpFlash,"simpleFlashBeam")
 evopflash_cosmic = io_ll.get_data(larlite.data.kOpFlash,"simpleFlashCosmic")
 
+traces_v = []
+
 # TRACK
-evtrack = io_ll.get_data(larlite.data.kTrack,"dltagger_allreco")
-print("number of tracks: ",evtrack.size())
-track_v = [ lardly.data.visualize_larlite_track( evtrack[i] ) for i in range(evtrack.size())  ]
+#evtrack = io_ll.get_data(larlite.data.kTrack,"dltagger_allreco")
+#print("number of tracks: ",evtrack.size())
+#track_v = [ lardly.data.visualize_larlite_track( evtrack[i] ) for i in range(evtrack.size())  ]
+#traces_v += track_v
 
 # CRT HITS
 evhits = io_ll.get_data(larlite.data.kCRTHit,"crthitcorr")
 crthit_v = [ lardly.data.visualize_larlite_event_crthit( evhits, "crthitcorr") ]
 filtered_crthit_v = lardly.ubdl.filter_crthits_wopreco( evopflash_beam, evopflash_cosmic, evhits )
 vis_filtered_crthit_v = [ lardly.data.visualize_larlite_crthit( x ) for x in filtered_crthit_v ]
+traces_v += vis_filtered_crthit_v
 
 # CRT TRACKS
 evtracks   = io_ll.get_data(larlite.data.kCRTTrack,"crttrack")
 crttrack_v = lardly.data.visualize_larlite_event_crttrack( evtracks, "crttrack")
+traces_v += crttrack_v
 
 detdata = lardly.DetectorOutline()
 
@@ -97,7 +102,7 @@ app.layout = html.Div( [
         dcc.Graph(
             id="det3d",
             figure={
-                "data": detdata.getlines()+track_v+vis_filtered_crthit_v,
+                "data": detdata.getlines()+traces_v,
                 "layout": plot_layout,
             },
             config={"editable": True, "scrollZoom": False},

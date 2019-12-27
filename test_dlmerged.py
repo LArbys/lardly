@@ -27,6 +27,7 @@ HAS_PIXELS = False
 HAS_LARMATCH = False
 if args.larflow is not None:
     HAS_LARMATCH = True
+HAS_CRT = True
 
 # ======================================
 # IO
@@ -57,6 +58,10 @@ traces2d = {0:[],1:[],2:[]}
 
 ev_adc = io_cv.get_data( larcv.kProductImage2D, "wire" )
 img_v  = ev_adc.Image2DArray()
+
+# OPFLASH
+evopflash_beam   = io_ll.get_data(larlite.data.kOpFlash,"simpleFlashBeam")
+evopflash_cosmic = io_ll.get_data(larlite.data.kOpFlash,"simpleFlashCosmic")
 
 # VERTEX
 if True:
@@ -117,7 +122,20 @@ if HAS_LARMATCH:
     lfhits_v =  [ lardly.data.visualize_larlite_larflowhits( ev_lfhits, "larmatch" ) ]
     traces3d += lfhits_v
 
+# CRT
+if HAS_CRT:
+    print("Visualize CRT")
+    ev_crthits = io_ll.get_data(larlite.data.kCRTHit,"crthitcorr")
+    crthit_v = [ lardly.data.visualize_larlite_event_crthit( ev_crthits, "crthitcorr") ]
+    filtered_crthit_v = lardly.ubdl.filter_crthits_wopreco( evopflash_beam, evopflash_cosmic, ev_crthits )
+    vis_filtered_crthit_v = [ lardly.data.visualize_larlite_crthit( x ) for x in filtered_crthit_v ]
+    traces3d += vis_filtered_crthit_v
 
+    # CRT TRACKS
+    evtracks   = io_ll.get_data(larlite.data.kCRTTrack,"crttrack")
+    crttrack_v = lardly.data.visualize_larlite_event_crttrack( evtracks, "crttrack")
+    traces3d += crttrack_v
+    
 # IMAGE2D
 ev_img = io_cv.get_data( larcv.kProductImage2D, "wire" )
 img2d_v = ev_img.Image2DArray()

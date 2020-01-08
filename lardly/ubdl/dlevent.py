@@ -4,7 +4,6 @@ import os,sys
 import ROOT as rt
 from larlite import larlite
 from larcv import larcv
-from ublarcvapp import ublarcvapp
 
 from ..data import visualize2d_larcv_pgraph, visualize3d_larcv_pgraph
 from ..data import visualize_larcv_image2d

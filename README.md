@@ -15,6 +15,7 @@ Using this script to play around. You can load in a `larlite` file and an `larcv
 ### `test_dlmerged.py`
 
 This script plots most of the reconstruction quantities in the DL reco. chain.
+Runs on the `merged_dlreco` files produced by the production at FNAL (and now Tufts).
 
 ### `plot_lfcluster.py`
 
@@ -30,7 +31,7 @@ Example for plotting CRT.
 
 Follow [this page](https://dash.plot.ly/installation) to install `plotly dash`.
 
-You also need to build the `ubdl` version of the DL LEE software. (`dllee_unified` might work in principle).
+You also need to build EITHER `ubdl` or `dllee_unified` version of the DL LEE software.
 
 The `ubdl` [repo](https://github.com/larbys/ubdl).
 

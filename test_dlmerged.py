@@ -1,10 +1,22 @@
 from __future__ import print_function
 import os,sys,argparse
 
+if "DLLEE_UNIFIED_BASEDIR" in os.environ:
+    print("DLLEE UNIFIED DETECTED")
+    REPO = "UNIFIED"
+elif "UBDL_BASEDIR" in os.environ:
+    print("UBDL DETECTED")
+else:
+    REPO = "UBDL"
+    print("Must setup either DLLEE_UNIFIED or UBDL repository")
+    sys.exit(0)
+
 parser = argparse.ArgumentParser("test_3d lardly viewer w/ DL Merged File")
 parser.add_argument("-i","--input-file",required=True,type=str,help="dlmerged file")
 parser.add_argument("-e","--entry",required=True,type=int,help="Entry to load")
 parser.add_argument("-lf","--larflow",type=str,default=None,help="Provide input larflow file (optional)")
+parser.add_argument("-crt","--has-crt",default=False,action='store_true',help="Plot CRT information (assumed to be available)")
+parser.add_argument("-mc","--mc-tracks",default=False,action='store_true',help="Plot MC Tracks")
 
 args = parser.parse_args(sys.argv[1:])
 
@@ -23,11 +35,15 @@ import lardly
 ientry = args.entry
 
 HAS_TRACKS = True
+HAS_SHOWERS = True
 HAS_PIXELS = False
 HAS_LARMATCH = False
 if args.larflow is not None:
     HAS_LARMATCH = True
-HAS_CRT = True
+FLIP_IMAGE2D = False
+if REPO=="UNIFIED":
+    FLIP_IMAGE2D = True
+
 
 # ======================================
 # IO
@@ -45,9 +61,13 @@ io_ll.go_to(ientry)
 
 
 # LARCV
-io_cv = larcv.IOManager(larcv.IOManager.kREAD,"larcv",larcv.IOManager.kTickBackward)
+if REPO=="UBDL":    
+    io_cv = larcv.IOManager(larcv.IOManager.kREAD,"larcv",larcv.IOManager.kTickBackward)
+else:
+    io_cv = larcv.IOManager(larcv.IOManager.kREAD,"larcv")
 io_cv.add_in_file( args.input_file )
-io_cv.reverse_all_products()
+if REPO=="UBDL":
+    io_cv.reverse_all_products()
 io_cv.initialize()
 io_cv.read_entry(ientry)
 
@@ -81,17 +101,18 @@ if True:
 
 # PATICLE TRACK
 if True:
-    evtrack = io_ll.get_data(larlite.data.kTrack,"trackReco_sceadded")
+    evtrack     = io_ll.get_data(larlite.data.kTrack,"trackReco")
+    evtrack_sce = io_ll.get_data(larlite.data.kTrack,"trackReco_sceadded")    
     print("number of tracks: ",evtrack.size())
-    traces3d += [ lardly.data.visualize_larlite_track( evtrack[i], color=(125,255,255) ) for i in range(evtrack.size())  ]
+    traces3d += [ lardly.data.visualize_larlite_track( evtrack_sce[i], color=(255,165,0) ) for i in range(evtrack_sce.size())  ]
 
     for itrack in range(evtrack.size()):
-        track_traces = lardly.data.visualize2d_larlite_track( evtrack[itrack], img_v, color=(125,255,255) )
+        track_traces = lardly.data.visualize2d_larlite_track( evtrack[itrack], img_v, color=(255,165,0) )
         for p in range(3):
             traces2d[p].append( track_traces[p] )
 
 # SHOWER
-if True:
+if HAS_SHOWERS:
     # 3D Showers
     ev_shower = io_ll.get_data( larlite.data.kShower, "showerreco" )
     print("number of showers (showerreco): ",ev_shower.size())
@@ -110,9 +131,10 @@ if True:
     traces3d += [ lardly.data.visualize_larlite_track( ev_cosmics[i], color=(255,0,0) ) for i in range(ev_cosmics.size())  ]
 
 # MCTRACK
-if False:
+if args.mc_tracks:
     print("VISUALIZE MCTRACKS")
     mctrack_v = lardly.data.visualize_larlite_event_mctrack( io_ll.get_data(larlite.data.kMCTrack, "mcreco"))
+    traces3d += mctrack_v
 
 # LARFLOW HITS
 if HAS_LARMATCH:
@@ -123,7 +145,7 @@ if HAS_LARMATCH:
     traces3d += lfhits_v
 
 # CRT
-if HAS_CRT:
+if args.has_crt:
     print("Visualize CRT")
     ev_crthits = io_ll.get_data(larlite.data.kCRTHit,"crthitcorr")
     crthit_v = [ lardly.data.visualize_larlite_event_crthit( ev_crthits, "crthitcorr") ]
@@ -204,15 +226,15 @@ app.layout = html.Div( [
     html.Div( [
         dcc.Graph(
             id="image2d_plane0",
-            figure={"data":[ lardly.data.visualize_larcv_image2d( img2d_v[0] )]+traces2d[0],
+            figure={"data":[ lardly.data.visualize_larcv_image2d( img2d_v[0], reverse_ticks=FLIP_IMAGE2D )]+traces2d[0],
                     "layout":{"height":800} }),
         dcc.Graph(
             id="image2d_plane1",
-            figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[1] )]+traces2d[1],
+            figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[1], reverse_ticks=FLIP_IMAGE2D )]+traces2d[1],
                     "layout":{"height":800}}),
         dcc.Graph(
             id="image2d_plane2",
-            figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[2] )]+traces2d[2],
+            figure={"data":[lardly.data.visualize_larcv_image2d( img2d_v[2], reverse_ticks=FLIP_IMAGE2D )]+traces2d[2],
                     "layout":{"height":800}}),
         ] ),
     ] )

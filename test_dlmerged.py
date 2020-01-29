@@ -6,8 +6,8 @@ if "DLLEE_UNIFIED_BASEDIR" in os.environ:
     REPO = "UNIFIED"
 elif "UBDL_BASEDIR" in os.environ:
     print("UBDL DETECTED")
+    REPO = "UBDL"    
 else:
-    REPO = "UBDL"
     print("Must setup either DLLEE_UNIFIED or UBDL repository")
     sys.exit(0)
 
@@ -38,6 +38,7 @@ HAS_TRACKS = True
 HAS_SHOWERS = True
 HAS_PIXELS = False
 HAS_LARMATCH = False
+PLOT_COSMIC_TAGGER = False
 if args.larflow is not None:
     HAS_LARMATCH = True
 FLIP_IMAGE2D = False
@@ -126,7 +127,7 @@ if HAS_SHOWERS:
             traces2d[p].append( shower2d_trace[p] )
 
 # COSMIC TRACKS
-if True:
+if PLOT_COSMIC_TAGGER:
     ev_cosmics = io_ll.get_data(larlite.data.kTrack,"mergedthrumu3d")
     traces3d += [ lardly.data.visualize_larlite_track( ev_cosmics[i], color=(255,0,0) ) for i in range(ev_cosmics.size())  ]
 

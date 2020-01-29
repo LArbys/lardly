@@ -49,7 +49,7 @@ def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_co
     return mesh,lines
 
 
-def larlite_opflash_3d( opflash, x_offset=0.0, min_pe=None, max_pe=None ):
+def visualize_larlite_opflash_3d( opflash, x_offset=0.0, min_pe=None, max_pe=None ):
 
     circles = []
     nsteps = 20
@@ -59,13 +59,25 @@ def larlite_opflash_3d( opflash, x_offset=0.0, min_pe=None, max_pe=None ):
     if min_pe is None:
         min_pe = 0.0
 
+    all_pe = [ 0 for x in xrange(32) ]
+    petot = 0.0
+    for n in xrange(opflash.nOpDets()):
+        pe = opflash.PE(n)
+        ch = n%100
+        petot += pe
+        
+        if pe>0:
+            #print("ch[%d,%d] %.2f"%(n,ch,opflash.PE(n)))
+            if ch<32:
+                all_pe[ch] = pe
+    print petot,all_pe
+        
     if max_pe is None:
-        pe = [ opflash.PE(i) for i in xrange(32) ]
-        max_pe = max(pe)
-        print pe,max_pe
+        max_pe = max(all_pe)
+        max_pe = max(max_pe,1.0)
     
     for ipmt in xrange(32):
-        pe = opflash.PE(ipmt)
+        pe = all_pe[ipmt]
         value = (pe-min_pe)/(max_pe-min_pe)
         value = min( value, 1.0 )
         value = max( value, 0 )

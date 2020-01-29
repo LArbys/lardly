@@ -5,17 +5,22 @@ def visualize_larlite_crttrack( larlite_crttrack, notimeshift=False ):
 
     if notimeshift:
         dx = 0.0
+        t_usec = 0.0
     else:
         from larlite import larutil
         dv = larutil.LArProperties.GetME().DriftVelocity()    
-        t_usec = larlite_crttrack.ts2_ns*0.001
+        t_usec = 0.5*(larlite_crttrack.ts2_ns_h1+larlite_crttrack.ts2_ns_h2)*0.001 # convert to microseconds
         dx = t_usec*dv
     
-    xyz = np.zeros( (1,4 ) )
-    xyz[0,0] = larlite_crttrack.x_pos + dx
-    xyz[0,1] = larlite_crttrack.y_pos
-    xyz[0,2] = larlite_crttrack.z_pos
-    xyz[0,3] = larlite_crttrack.ts2_ns*0.001 # convert to microseconds
+    xyz = np.zeros( (2,4 ) )
+    xyz[0,0] = larlite_crttrack.x1_pos + dx
+    xyz[0,1] = larlite_crttrack.y1_pos
+    xyz[0,2] = larlite_crttrack.z1_pos
+    xyz[0,3] = larlite_crttrack.ts2_ns_h1*0.001
+    xyz[1,0] = larlite_crttrack.x2_pos + dx
+    xyz[1,1] = larlite_crttrack.y2_pos
+    xyz[1,2] = larlite_crttrack.z2_pos
+    xyz[1,3] = larlite_crttrack.ts2_ns_h2*0.001
 
     crttrack = {
         "type":"scatter3d",

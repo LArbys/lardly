@@ -32,9 +32,12 @@ class CRTOutline:
                             (393.0, -240.0, 1150.0),
                             (393.0, -240.0, -100.0) ]
                                 
-    def getlines(self):
+    def getlines(self,color=None):
         lines_v = []
 
+        if color is None:
+            color = "rgb(0,150,150)"
+        
         for panel in [ self.top_panel, self.bot_panel, self.feedthru_panel, self.pipe_panel ]:
 
             Xe = []
@@ -55,7 +58,7 @@ class CRTOutline:
                 "z": Ze,
                 "mode": "lines",
                 "name": "",
-                "line": {"color": "rgb(0,0,0)", "width": 5},
+                "line": {"color":color, "width": 5},
             }
 
             lines_v.append(lines)

@@ -2,7 +2,7 @@ from __future__ import print_function
 import os,sys
 import numpy as np
 from larcv import larcv
-larcv.load_pyutil()
+#larcv.load_pyutil()
 import plotly.graph_objs as go
 from .larcv_pixel2dcluster import visualize_larcv_pixel2dcluster
 

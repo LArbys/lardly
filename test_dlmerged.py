@@ -1,7 +1,7 @@
 from __future__ import print_function
 import os,sys,argparse
 
-if "DLLEE_UNIFIED_BASEDIR" in os.environ:
+if "DLLEE_UNIFIED_BASEDIR" in os.environ or "DLLEE_UNIFIED_DIR" in os.environ:
     print("DLLEE UNIFIED DETECTED")
     REPO = "UNIFIED"
 elif "UBDL_BASEDIR" in os.environ:
@@ -17,6 +17,7 @@ parser.add_argument("-e","--entry",required=True,type=int,help="Entry to load")
 parser.add_argument("-lf","--larflow",type=str,default=None,help="Provide input larflow file (optional)")
 parser.add_argument("-crt","--has-crt",default=False,action='store_true',help="Plot CRT information (assumed to be available)")
 parser.add_argument("-mc","--mc-tracks",default=False,action='store_true',help="Plot MC Tracks")
+parser.add_argument("-p","--port",default=8050,type=int,help="Set Port. Default (8050)")
 
 args = parser.parse_args(sys.argv[1:])
 
@@ -30,6 +31,9 @@ from dash.exceptions import PreventUpdate
 
 from larlite import larlite
 from larcv import larcv
+#print(larcv.load_pyutil)
+#larcv.load_pyutil
+
 import lardly
 
 ientry = args.entry
@@ -129,7 +133,8 @@ if HAS_SHOWERS:
 # COSMIC TRACKS
 if PLOT_COSMIC_TAGGER:
     ev_cosmics = io_ll.get_data(larlite.data.kTrack,"mergedthrumu3d")
-    traces3d += [ lardly.data.visualize_larlite_track( ev_cosmics[i], color=(255,0,0) ) for i in range(ev_cosmics.size())  ]
+    if ev_cosmics.size()>0:
+        traces3d += [ lardly.data.visualize_larlite_track( ev_cosmics[i], color=(255,0,0) ) for i in range(ev_cosmics.size())  ]
 
 # MCTRACK
 if args.mc_tracks:
@@ -241,4 +246,4 @@ app.layout = html.Div( [
     ] )
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(port=args.port,debug=True)

@@ -1,7 +1,7 @@
 import os,sys
 import numpy as np
 
-def visualize_larlite_crttrack( larlite_crttrack, notimeshift=False ):
+def visualize_larlite_crttrack( larlite_crttrack, notimeshift=False, marker_color='rgb(0,230,0)', line_color='rgb(10,50,50)' ):
 
     if notimeshift:
         dx = 0.0
@@ -27,9 +27,9 @@ def visualize_larlite_crttrack( larlite_crttrack, notimeshift=False ):
         "x": xyz[:,0],
         "y": xyz[:,1],
         "z": xyz[:,2],
-        "mode":"markers",
         "name":"",
-        "marker":{"color":"rgb(0,225,0)","size":8,"opacity":0.8},
+        "marker":{"color":marker_color,"size":8,"opacity":0.8},
+        "line":{"color":line_color,"size":1,"opacity":0.5},
     }
 
     return crttrack

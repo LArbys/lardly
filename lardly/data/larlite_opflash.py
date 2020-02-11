@@ -32,7 +32,7 @@ def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_co
         color='rgb(%d,0,0)'%( 54+int(value*200) )
 
     mesh = go.Mesh3d( x=x, y=y, z=z, i=i, j=j, k=k,
-                      showscale=False, name="test", color=color )
+                      showscale=False, name="opflash", color=color )
 
     lx = np.copy(x)
     ly = np.copy(y)
@@ -44,12 +44,12 @@ def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_co
     if outline_color is None:
         outline_color="rgb(255,255,255)"
         
-    lines = go.Scatter3d( x=lx, y=ly, z=lz, mode="lines", line={"color":outline_color,"width":1} )
+    lines = go.Scatter3d( x=lx, y=ly, z=lz, mode="lines", name="opflash", line={"color":outline_color,"width":1} )
 
     return mesh,lines
 
 
-def visualize_larlite_opflash_3d( opflash, x_offset=0.0, min_pe=None, max_pe=None ):
+def visualize_larlite_opflash_3d( opflash, x_offset=-15.0, min_pe=None, max_pe=None ):
 
     circles = []
     nsteps = 20
@@ -81,7 +81,7 @@ def visualize_larlite_opflash_3d( opflash, x_offset=0.0, min_pe=None, max_pe=Non
         value = (pe-min_pe)/(max_pe-min_pe)
         value = min( value, 1.0 )
         value = max( value, 0 )
-        center = [x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
+        center = [pmtposmap[ipmt][0]+x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
         mesh, outline = define_circle_mesh( center, 20.0, value, nsteps=20 )
         circles.append( mesh )
         circles.append( outline )

@@ -31,6 +31,8 @@ from dash.exceptions import PreventUpdate
 
 from larlite import larlite
 from larcv import larcv
+from ROOT import larutil
+import numpy as np
 #print(larcv.load_pyutil)
 #larcv.load_pyutil
 
@@ -48,6 +50,7 @@ if args.larflow is not None:
 FLIP_IMAGE2D = False
 if REPO=="UNIFIED":
     FLIP_IMAGE2D = True
+USE_NEW_SHOWER=True
 
 
 # ======================================
@@ -119,17 +122,40 @@ if True:
 # SHOWER
 if HAS_SHOWERS:
     # 3D Showers
-    ev_shower = io_ll.get_data( larlite.data.kShower, "showerreco" )
-    print("number of showers (showerreco): ",ev_shower.size())
-    shower_traces = [ lardly.data.visualize3d_larlite_shower( ev_shower.at(x) ) for x in range(ev_shower.size()) ]
-    traces3d += shower_traces
+    if not USE_NEW_SHOWER:
+        ev_shower = io_ll.get_data( larlite.data.kShower, "showerreco" )
+        print("number of showers (showerreco): ",ev_shower.size())
+        shower_traces = [ lardly.data.visualize3d_larlite_shower( ev_shower.at(x) ) for x in range(ev_shower.size()) ]
+        traces3d += shower_traces
 
-    shower2d_traces = [ lardly.data.visualize2d_larlite_shower( ev_shower.at(x) ) for x in range(ev_shower.size()) ]
-    for shower2d_trace in shower2d_traces:
-        print("shower trace: ",shower2d_trace)
-        for p in range(3):
-            traces2d[p].append( shower2d_trace[p] )
-
+        shower2d_traces = [ lardly.data.visualize2d_larlite_shower( ev_shower.at(x) ) for x in range(ev_shower.size()) ]
+        for shower2d_trace in shower2d_traces:
+            print("shower trace: ",shower2d_trace)
+            for p in range(3):
+                traces2d[p].append( shower2d_trace[p] )
+    else:
+        ev_shower = io_ll.get_data( larlite.data.kShower, "ssnetshowerreco" )
+        print("number of showers (ssnetshowerreco): ",ev_shower.size())
+        for ishr in xrange(ev_shower.size()):
+            ll_shr = ev_shower.at(ishr)
+            shower_angle = np.arctan2( ll_shr.Direction()[1], ll_shr.Direction()[0] )
+            np_shr = np.zeros( (4,2) )            
+            np_shr[0,1] = ll_shr.ShowerStart()[0]/larutil.LArProperties.GetME().DriftVelocity()/0.5+3200       # tick
+            np_shr[0,0] = larutil.Geometry.GetME().WireCoordinate( ll_shr.ShowerStart(), ll_shr.best_plane() ) # col
+            np_shr[1,1] = np_shr[0,1] + ll_shr.Length()*np.sin( -shower_angle-0.5*ll_shr.OpeningAngle() ) # tick
+            np_shr[1,0] = np_shr[0,0] + ll_shr.Length()*np.cos( -shower_angle-0.5*ll_shr.OpeningAngle() ) # col
+            np_shr[2,1] = np_shr[0,1] + ll_shr.Length()*np.sin( -shower_angle+0.5*ll_shr.OpeningAngle() ) # tick
+            np_shr[2,0] = np_shr[0,0] + ll_shr.Length()*np.cos( -shower_angle+0.5*ll_shr.OpeningAngle() ) # col
+            np_shr[3,:] = np_shr[0,:]
+            shower2d_trace = {
+                "x":np_shr[:,0],
+                "y":np_shr[:,1],
+                "name":"vtx[%d]"%(ll_shr.ID()),
+                "mode":"lines",
+                "line":{"color":"rgb(255,155,255)"},
+            }
+            traces2d[ll_shr.best_plane()].append( shower2d_trace )
+        
 # COSMIC TRACKS
 if PLOT_COSMIC_TAGGER:
     ev_cosmics = io_ll.get_data(larlite.data.kTrack,"mergedthrumu3d")
@@ -155,9 +181,16 @@ if args.has_crt:
     print("Visualize CRT")
     ev_crthits = io_ll.get_data(larlite.data.kCRTHit,"crthitcorr")
     crthit_v = [ lardly.data.visualize_larlite_event_crthit( ev_crthits, "crthitcorr") ]
-    filtered_crthit_v = lardly.ubdl.filter_crthits_wopreco( evopflash_beam, evopflash_cosmic, ev_crthits )
-    vis_filtered_crthit_v = [ lardly.data.visualize_larlite_crthit( x ) for x in filtered_crthit_v ]
-    traces3d += vis_filtered_crthit_v
+    #filtered_crthit_v = lardly.ubdl.filter_crthits_wopreco( evopflash_beam, evopflash_cosmic, ev_crthits )
+    #vis_filtered_crthit_v = [ lardly.data.visualize_larlite_crthit( x ) for x in filtered_crthit_v ]
+    traces3d += crthit_v
+    min_crt_ns = 1.0e9
+    max_crt_ns = -1.0e9
+    for ihit in range(ev_crthits.size()):
+        ns = ev_crthits[ihit].ts2_ns
+        min_crt_ns = min(min_crt_ns,ns)
+        max_crt_ns = max(max_crt_ns,ns)
+    print("Min CRT time (usec): ",min_crt_ns*0.001,"  Max CRT time (usec): ",max_crt_ns*0.001)
 
     # CRT TRACKS
     evtracks   = io_ll.get_data(larlite.data.kCRTTrack,"crttrack")
@@ -202,7 +235,7 @@ plot_layout = {
         "xaxis": axis_template,
         "yaxis": axis_template,
         "zaxis": axis_template,
-        "aspectratio": {"x": 1, "y": 1, "z": 4},
+        #"aspectratio": {"x": 1, "y": 1, "z": 4},
         "camera": {"eye": {"x": 2, "y": 2, "z": 2},
                    "up":dict(x=0, y=1, z=0)},
         "annotations": [],

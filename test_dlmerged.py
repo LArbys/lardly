@@ -136,16 +136,31 @@ if HAS_SHOWERS:
     else:
         ev_shower = io_ll.get_data( larlite.data.kShower, "ssnetshowerreco" )
         print("number of showers (ssnetshowerreco): ",ev_shower.size())
+        pixheight = img_v[0].meta().pixel_height()
         for ishr in xrange(ev_shower.size()):
             ll_shr = ev_shower.at(ishr)
             shower_angle = np.arctan2( ll_shr.Direction()[1], ll_shr.Direction()[0] )
-            np_shr = np.zeros( (4,2) )            
-            np_shr[0,1] = ll_shr.ShowerStart()[0]/larutil.LArProperties.GetME().DriftVelocity()/0.5+3200       # tick
-            np_shr[0,0] = larutil.Geometry.GetME().WireCoordinate( ll_shr.ShowerStart(), ll_shr.best_plane() ) # col
-            np_shr[1,1] = np_shr[0,1] + ll_shr.Length()*np.sin( -shower_angle-0.5*ll_shr.OpeningAngle() ) # tick
-            np_shr[1,0] = np_shr[0,0] + ll_shr.Length()*np.cos( -shower_angle-0.5*ll_shr.OpeningAngle() ) # col
-            np_shr[2,1] = np_shr[0,1] + ll_shr.Length()*np.sin( -shower_angle+0.5*ll_shr.OpeningAngle() ) # tick
-            np_shr[2,0] = np_shr[0,0] + ll_shr.Length()*np.cos( -shower_angle+0.5*ll_shr.OpeningAngle() ) # col
+            tick = ll_shr.ShowerStart()[0]/larutil.LArProperties.GetME().DriftVelocity()/0.5+3200
+            wire = larutil.Geometry.GetME().WireCoordinate( ll_shr.ShowerStart(), ll_shr.best_plane() )
+            row = img_v[0].meta().row(tick)
+            
+            np_shr = np.zeros( (4,2) )
+            np_shr[0,1] = tick
+            np_shr[0,0] = wire
+
+            row1 = int(row) - int(ll_shr.Length()*np.sin( shower_angle+ll_shr.OpeningAngle() ))
+            row2 = int(row) - int(ll_shr.Length()*np.sin( shower_angle-ll_shr.OpeningAngle() ))
+            if row1<0 or row2<0:
+                print("invalid shower[idx={}] rows: row1={} row2={}".format(ishr,row1,row2))
+                if row1<0:
+                    row1 = 0
+                if row2<0:
+                    row2 = 0
+            
+            np_shr[1,1] = img_v[0].meta().pos_y( row1 )
+            np_shr[1,0] = wire + ll_shr.Length()*np.cos( shower_angle+ll_shr.OpeningAngle() )
+            np_shr[2,1] = img_v[0].meta().pos_y( row2 )
+            np_shr[2,0] = wire + ll_shr.Length()*np.cos( shower_angle-ll_shr.OpeningAngle() )
             np_shr[3,:] = np_shr[0,:]
             shower2d_trace = {
                 "x":np_shr[:,0],

@@ -49,7 +49,7 @@ def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_co
     return mesh,lines
 
 
-def visualize_larlite_opflash_3d( opflash, x_offset=-15.0, min_pe=None, max_pe=None ):
+def visualize_larlite_opflash_3d( opflash, x_offset=-15.0, pmt_radius_cm=10.0, min_pe=None, max_pe=None ):
 
     circles = []
     nsteps = 20
@@ -82,7 +82,23 @@ def visualize_larlite_opflash_3d( opflash, x_offset=-15.0, min_pe=None, max_pe=N
         value = min( value, 1.0 )
         value = max( value, 0 )
         center = [pmtposmap[ipmt][0]+x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
-        mesh, outline = define_circle_mesh( center, 20.0, value, nsteps=20 )
+        mesh, outline = define_circle_mesh( center, pmt_radius_cm, value, nsteps=20 )
+        circles.append( mesh )
+        circles.append( outline )
+        
+    return circles
+
+def visualize_empty_opflash( x_offset=-15.0, pmt_radius_cm=10.0 ):
+
+    circles = []
+    nsteps = 20
+    # for ipmt in xrange(32):
+    # we have to define a mesh
+    
+    for ipmt in range(32):
+        pe = 0.0
+        center = [pmtposmap[ipmt][0]+x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
+        mesh, outline = define_circle_mesh( center, pmt_radius_cm, pe, nsteps=20 )
         circles.append( mesh )
         circles.append( outline )
         

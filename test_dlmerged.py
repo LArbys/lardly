@@ -16,6 +16,7 @@ parser.add_argument("-i","--input-file",required=True,type=str,help="dlmerged fi
 parser.add_argument("-e","--entry",required=True,type=int,help="Entry to load")
 parser.add_argument("-lf","--larflow",type=str,default=None,help="Provide input larflow file (optional)")
 parser.add_argument("-crt","--has-crt",default=False,action='store_true',help="Plot CRT information (assumed to be available)")
+parser.add_argument("-ns","--no-shower",default=True,action='store_false',help="No shower")
 parser.add_argument("-mc","--mc-tracks",default=False,action='store_true',help="Plot MC Tracks")
 parser.add_argument("-p","--port",default=8050,type=int,help="Set Port. Default (8050)")
 
@@ -41,7 +42,7 @@ import lardly
 ientry = args.entry
 
 HAS_TRACKS = True
-HAS_SHOWERS = True
+HAS_SHOWERS = args.no_shower
 HAS_PIXELS = False
 HAS_LARMATCH = False
 PLOT_COSMIC_TAGGER = False

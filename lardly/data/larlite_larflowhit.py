@@ -19,7 +19,10 @@ def visualize_larlite_larflowhits( larlite_event_larflowhit, name="",score_thres
         xyz[ptsused,0] = hit[0]
         xyz[ptsused,1] = hit[1]
         xyz[ptsused,2] = hit[2]
-        xyz[ptsused,3] = hit.track_score
+        if hit.size()>=4:
+            xyz[ptsused,3] = hit.track_score
+        else:
+            xyz[ptsused,3] = 1.0
         #print (hit[0],hit[1],hit[2])
         ptsused += 1
 

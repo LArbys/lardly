@@ -16,7 +16,7 @@ def extract_mctrackpts( mctrack, sce=None ):
         steps_np[istep,:] = (x,step.Y(),step.Z())
     return steps_np
 
-def visualize_larlite_event_mctrack( event_mctrack ):
+def visualize_larlite_event_mctrack( event_mctrack, origin=None ):
 
     track_vis = []
     print ("number of mctracks: ",event_mctrack.size())
@@ -24,6 +24,9 @@ def visualize_larlite_event_mctrack( event_mctrack ):
         mctrack = event_mctrack.at(itrack)
         steps_np = extract_mctrackpts( mctrack )
         if mctrack.PdgCode()==2112:
+            continue
+
+        if origin is not None and origin!=mctrack.Origin():
             continue
 
         # cosmic origin

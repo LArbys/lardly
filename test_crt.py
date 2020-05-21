@@ -5,6 +5,7 @@ parser = argparse.ArgumentParser("test_3d lardly viewer")
 parser.add_argument("-ll","--larlite",required=True,type=str,help="larlite file with dltagger_allreco tracks")
 parser.add_argument("-e","--entry",required=True,type=int,help="Entry to load")
 parser.add_argument("-ns","--no-timeshift",action="store_true",default=False,help="Do not apply time-shift")
+parser.add_argument("-lf","--larflow",type=str,required=False,default=None,help="provide larmatch file and plot")
 
 args = parser.parse_args(sys.argv[1:])
 
@@ -27,6 +28,8 @@ ientry        = args.entry
 # LARLITE
 io_ll = larlite.storage_manager(larlite.storage_manager.kREAD)
 io_ll.add_in_filename( input_larlite )
+if args.larflow is not None:
+    io_ll.add_in_filename( args.larflow )
 io_ll.open()
 io_ll.go_to(ientry)
 
@@ -45,14 +48,20 @@ traces_v = []
 # CRT HITS
 evhits = io_ll.get_data(larlite.data.kCRTHit,"crthitcorr")
 crthit_v = [ lardly.data.visualize_larlite_event_crthit( evhits, "crthitcorr", notimeshift=args.no_timeshift) ]
-filtered_crthit_v = lardly.ubdl.filter_crthits_wopreco( evopflash_beam, evopflash_cosmic, evhits )
-vis_filtered_crthit_v = [ lardly.data.visualize_larlite_crthit( x, notimeshift=args.no_timeshift ) for x in filtered_crthit_v ]
-traces_v += vis_filtered_crthit_v
+#filtered_crthit_v = lardly.ubdl.filter_crthits_wopreco( evopflash_beam, evopflash_cosmic, evhits )
+#vis_filtered_crthit_v = [ lardly.data.visualize_larlite_crthit( x, notimeshift=args.no_timeshift ) for x in filtered_crthit_v ]
+#traces_v += vis_filtered_crthit_v
+traces_v += crthit_v
 
 # CRT TRACKS
 evtracks   = io_ll.get_data(larlite.data.kCRTTrack,"crttrack")
 crttrack_v = lardly.data.visualize_larlite_event_crttrack( evtracks, "crttrack", notimeshift=args.no_timeshift)
 traces_v += crttrack_v
+
+if args.larflow is not None:
+    ev_larmatch = io_ll.get_data(larlite.data.kLArFlow3DHit, "larmatch")
+    lfcluster = [ lardly.data.visualize_larlite_larflowhits( ev_larmatch ) ]
+    traces_v += lfcluster
 
 detdata = lardly.DetectorOutline()
 crtdet  = lardly.CRTOutline()

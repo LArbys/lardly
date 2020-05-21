@@ -31,7 +31,7 @@ class DetectorOutline:
                           [self.tpc[0][0],self.tpc[1][1], self.tpc[2][1]],
                           [self.tpc[0][0],self.tpc[1][0], self.tpc[2][1]] ]
                 
-    def getlines(self):
+    def getlines(self,color=(255,255,255)):
 
         # top boundary
         Xe = []
@@ -56,7 +56,7 @@ class DetectorOutline:
             "z": Ze,
             "mode": "lines",
             "name": "",
-            "line": {"color": "rgb(255,255,255)", "width": 5},
+            "line": {"color": "rgb(%d,%d,%d)"%color, "width": 5},
         }
         
         return [lines]

@@ -17,10 +17,16 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
-from larlite import larlite
-from larcv import larcv
-import lardly
+try:
+    from larlite import larlite
+    from larcv import larcv
+except:
+    print("Could not import larcv and/or larlite")
+    print("Have you run setenv.sh and configure.sh in ubdl?")
+    sys.exit(-1)
 
+    
+import lardly
 
 input_larlite = args.larlite
 ientry        = args.entry
@@ -28,7 +34,7 @@ ientry        = args.entry
 # LARLITE
 io_ll = larlite.storage_manager(larlite.storage_manager.kREAD)
 io_ll.add_in_filename( input_larlite )
-if args.larflow is not None:
+if args.larflow is not None and args.larflow!="":
     io_ll.add_in_filename( args.larflow )
 io_ll.open()
 io_ll.go_to(ientry)
@@ -47,21 +53,29 @@ traces_v = []
 
 # CRT HITS
 evhits = io_ll.get_data(larlite.data.kCRTHit,"crthitcorr")
-crthit_v = [ lardly.data.visualize_larlite_event_crthit( evhits, "crthitcorr", notimeshift=args.no_timeshift) ]
-#filtered_crthit_v = lardly.ubdl.filter_crthits_wopreco( evopflash_beam, evopflash_cosmic, evhits )
-#vis_filtered_crthit_v = [ lardly.data.visualize_larlite_crthit( x, notimeshift=args.no_timeshift ) for x in filtered_crthit_v ]
-#traces_v += vis_filtered_crthit_v
-traces_v += crthit_v
+if evhits.size()>0:
+    crthit_v = [ lardly.data.visualize_larlite_event_crthit( evhits, "crthitcorr", notimeshift=args.no_timeshift) ]
+    traces_v += crthit_v    
+else:
+    print("No CRT Hit objects in event")
+    
 
 # CRT TRACKS
 evtracks   = io_ll.get_data(larlite.data.kCRTTrack,"crttrack")
-crttrack_v = lardly.data.visualize_larlite_event_crttrack( evtracks, "crttrack", notimeshift=args.no_timeshift)
-traces_v += crttrack_v
+if evtracks.size()>0:
+    crttrack_v = lardly.data.visualize_larlite_event_crttrack( evtracks, "crttrack", notimeshift=args.no_timeshift)
+    traces_v += crttrack_v
+else:
+    print("No CRT Track Objects in event")
 
 if args.larflow is not None:
     ev_larmatch = io_ll.get_data(larlite.data.kLArFlow3DHit, "larmatch")
-    lfcluster = [ lardly.data.visualize_larlite_larflowhits( ev_larmatch ) ]
-    traces_v += lfcluster
+    if ev_larmatch.size()>0:
+        lfcluster = [ lardly.data.visualize_larlite_larflowhits( ev_larmatch, max_hits=30000 ) ]
+        traces_v += lfcluster
+    else:
+        print("No LArMatch hits found")
+        
 
 detdata = lardly.DetectorOutline()
 crtdet  = lardly.CRTOutline()

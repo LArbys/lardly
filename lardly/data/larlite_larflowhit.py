@@ -27,7 +27,7 @@ def visualize_larlite_larflowhits( larlite_event_larflowhit, name="",score_thres
         if ipt>=npoints:
             ipt=0
             nlaps+=1
-            print("[visualize_larlite_larflowhits] starting lap ",nlaps)
+            #print("[visualize_larlite_larflowhits] starting lap ",nlaps)
         
         hit = larlite_event_larflowhit.at(ipt)
 
@@ -50,7 +50,7 @@ def visualize_larlite_larflowhits( larlite_event_larflowhit, name="",score_thres
         #print (hit[0],hit[1],hit[2])
         ptsused += 1
 
-    print("num larflow hits given=",npoints," plotted=",ptsused)
+    #print("num larflow hits given=",npoints," plotted=",ptsused)
     larflowhits = {
         "type":"scatter3d",
         "x": xyz[:ptsused,0],

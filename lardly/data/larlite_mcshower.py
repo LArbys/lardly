@@ -101,8 +101,8 @@ def visualize3d_larlite_mcshower( larlite_mcshower, return_dirplot=False, fixed_
         "y":profpts[1,:],
         "z":profpts[2,:],
         "mode":"lines",
-        "name":"showerprof",
-        "line":{"color":"rgb(255,255,255,)","width":4}
+        "name":"sprof[%d,%d,%d]"%(shr.PdgCode(),shr.TrackID(),shr.Origin()),
+        "line":{"color":"rgb(255,0,255,)","width":4}
     }
     
     

@@ -89,8 +89,8 @@ def visualize3d_larlite_mcshower( larlite_mcshower, return_dirplot=False, fixed_
         print "empty det prof mom, return with profile trace"
         return [shower_trace,shower_dir_trace]
     
-    print "def prof vtx: ",[shr.DetProfile().Position()[i] for i in xrange(3)]
-    print "det prof mom: ",(profmom[0],profmom[1],profmom[2])," mag=",profmom.Mag()
+    #print "def prof vtx: ",[shr.DetProfile().Position()[i] for i in xrange(3)]
+    #print "det prof mom: ",(profmom[0],profmom[1],profmom[2])," mag=",profmom.Mag()
     for i in xrange(3):
         profpts[i,0] = shr.DetProfile().Position()[i]
         profpts[i,1] = shr.DetProfile().Position()[i] + 50.0*profmom[i]/profmom.Mag()

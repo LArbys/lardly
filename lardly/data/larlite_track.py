@@ -22,6 +22,15 @@ def visualize_larlite_track( larlite_track, track_id=None, color=None ):
 
     if color is None:
         color = "rgb(255,0,0)"
+    elif type(color) is str and "dqdx" in color:
+        p_dqdx = 2
+        if "-" in color:
+            p_dqdx = int(color.split("-")[-1])
+        ndqdx = larlite_track.NumberdQdx(0)
+        vcolor = np.zeros( npoints )
+        if  ndqdx>0:
+            for ipt in range(npoints):
+                vcolor[ipt] = larlite_track.DQdxAtPoint(ipt,p_dqdx)
     else:
         color = "rgb({},{},{})".format(color[0],color[1],color[2])
         
@@ -34,6 +43,11 @@ def visualize_larlite_track( larlite_track, track_id=None, color=None ):
         "name":name,
         "line":{"color":color,"width":2},
     }
+    
+    if type(color) is str and "dqdx" in color:
+        track["mode"] = "lines+markers"
+        track["marker"] = {"color":vcolor,"size":3.0,"colorscale":"Viridis"}        
+        track["line"]["color"] = "rgb(255,0,0)"
 
     return track
 

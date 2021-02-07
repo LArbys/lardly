@@ -1,7 +1,8 @@
 import os,sys
 import numpy as np
 
-def visualize_larlite_larflowhits( larlite_event_larflowhit, name="",score_threshold=0, max_hits=None, score_index=None ):
+def visualize_larlite_larflowhits( larlite_event_larflowhit, name="",score_threshold=0,
+                                   max_hits=None, score_index=None, plot_renormed_shower_score=False ):
 
     npoints = larlite_event_larflowhit.size()
 
@@ -40,13 +41,16 @@ def visualize_larlite_larflowhits( larlite_event_larflowhit, name="",score_thres
         xyz[ptsused,0] = hit[0]
         xyz[ptsused,1] = hit[1]
         xyz[ptsused,2] = hit[2]
-        if hit.size()>=4:
-            if score_index is None or type(score_index) is not int:
-                xyz[ptsused,3] = hit.track_score
-            else:
-                xyz[ptsused,3] = hit[score_index]
+        if plot_renormed_shower_score:
+            xyz[ptsused,3] = hit.renormed_shower_score
         else:
-            xyz[ptsused,3] = 1.0
+            if hit.size()>=4:            
+                if score_index is None or type(score_index) is not int:
+                    xyz[ptsused,3] = hit.track_score
+                else:
+                    xyz[ptsused,3] = hit[score_index]
+            else:
+                xyz[ptsused,3] = 1.0
         #print (hit[0],hit[1],hit[2])
         ptsused += 1
 

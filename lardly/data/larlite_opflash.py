@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os,sys
 from ..ubdl.pmtpos import pmtposmap
 import numpy as np
@@ -19,7 +20,7 @@ def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_co
     i = np.ones( nsteps, dtype=np.int)*nsteps # always points to center
     j = np.zeros( nsteps, dtype=np.int )
     k = np.zeros( nsteps, dtype=np.int )
-    for n in xrange(nsteps):
+    for n in range(nsteps):
         j[n] = n
         if n+1==nsteps:
             k[n] = 0
@@ -59,9 +60,9 @@ def visualize_larlite_opflash_3d( opflash, x_offset=-15.0, pmt_radius_cm=10.0, m
     if min_pe is None:
         min_pe = 0.0
 
-    all_pe = [ 0 for x in xrange(32) ]
+    all_pe = [ 0 for x in range(32) ]
     petot = 0.0
-    for n in xrange(opflash.nOpDets()):
+    for n in range(opflash.nOpDets()):
         pe = opflash.PE(n)
         ch = n%100
         petot += pe
@@ -70,13 +71,13 @@ def visualize_larlite_opflash_3d( opflash, x_offset=-15.0, pmt_radius_cm=10.0, m
             #print("ch[%d,%d] %.2f"%(n,ch,opflash.PE(n)))
             if ch<32:
                 all_pe[ch] = pe
-    print petot,all_pe
+    print(petot,all_pe)
         
     if max_pe is None:
         max_pe = max(all_pe)
         max_pe = max(max_pe,1.0)
     
-    for ipmt in xrange(32):
+    for ipmt in range(32):
         pe = all_pe[ipmt]
         value = (pe-min_pe)/(max_pe-min_pe)
         value = min( value, 1.0 )
@@ -92,7 +93,7 @@ def visualize_empty_opflash( x_offset=-15.0, pmt_radius_cm=10.0 ):
 
     circles = []
     nsteps = 20
-    # for ipmt in xrange(32):
+    # for ipmt in range(32):
     # we have to define a mesh
     
     for ipmt in range(32):

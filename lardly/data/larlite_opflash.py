@@ -71,7 +71,7 @@ def visualize_larlite_opflash_3d( opflash, x_offset=-15.0, pmt_radius_cm=10.0, m
             #print("ch[%d,%d] %.2f"%(n,ch,opflash.PE(n)))
             if ch<32:
                 all_pe[ch] = pe
-    print(petot,all_pe)
+    #print(petot,all_pe)
         
     if max_pe is None:
         max_pe = max(all_pe)

@@ -47,13 +47,14 @@ def getPosFromID( id, origin_at_detcenter=False ):
             if origin_at_detcenter:
                 pos[i] -= getDetectorCenter()[i]
         return pos
-    print("[ pylard.pmtpos ] did not find channel %d"%(id))
+    #print("[ pylard.pmtpos ] did not find channel %d"%(id))
     return None
 
 def getDetectorCenter():
     return [125.0,0.5*(-57.022+55.8),0.5*(990.356+51.1015)]
 
 if __name__ == "__main__":
+
     print("FEMCH[36][3] = {",end='')
     for ich in range(0,36):
         print("{",pmtposmap[ich][0],",",pmtposmap[ich][1],",",pmtposmap[ich][2],"}",end='')

@@ -8,6 +8,12 @@ default_pid_colors = {2212:'rgb(153,55,255)', # protons
                       0:'rgb(0,0,0)'# other
                       }
 
+try:
+    from ublarcvapp import ublarcvapp
+    tracksce = ublarcvapp.mctools.TruthTrackSCE()
+except:
+    tracksce = None
+
 def extract_mctrackpts( mctrack, sce=None ):
     from larlite import larlite, larutil
     cm_per_tick = larutil.LArProperties.GetME().DriftVelocity()*0.5
@@ -25,6 +31,7 @@ def extract_mctrackpts( mctrack, sce=None ):
     return steps_np
 
 def visualize_larlite_event_mctrack( event_mctrack, origin=None,
+                                     do_sce_correction=False,
                                      color_labels=default_pid_colors,
                                      width=3, color_by_origin=False ):
 
@@ -32,7 +39,6 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None,
     print ("number of mctracks: ",event_mctrack.size())
     for itrack in range(event_mctrack.size()):
         mctrack = event_mctrack.at(itrack)
-        steps_np = extract_mctrackpts( mctrack )
         pid = mctrack.PdgCode()
         if pid==2112:
             # skip neutrons
@@ -53,8 +59,16 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None,
             else:
                 color = color_labels[0]
 
-        
-
+        if do_sce_correction and tracksce is not None:
+            lltrack = tracksce.applySCE( mctrack )
+            npoints = lltrack.NumberTrajectoryPoints()
+            steps_np = np.zeros( (npoints,3 ) )
+            for ipt in range(npoints):
+                for i in range(3):
+                    steps_np[ipt,i] = lltrack.LocationAtPoint(ipt)(i)
+        else:
+            steps_np = extract_mctrackpts( mctrack )
+            
         trackvis = {
             "type":"scatter3d",
             "x":steps_np[:,0],

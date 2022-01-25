@@ -79,7 +79,7 @@ def visualize3d_larlite_mcshower( larlite_mcshower,
             "z":dirpts[2,:],
             "mode":"lines",
             "name":"showerdir",
-            "line":{"color":"rgb(125,125,125,)","width":2}
+            "line":{"color":"rgb(125,125,125)","width":2}
         }
     else:
         shower_dir_trace = None

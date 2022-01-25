@@ -12,3 +12,4 @@ from .larlite_shower import *
 from .larlite_spacepoints import *
 from .larlite_opflash import *
 from .larlite_pcaxis import *
+from .larlite_mcutil import *

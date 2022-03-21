@@ -22,7 +22,7 @@ def visualize_pcaxis( llpca, color=None, idnum=0 ):
         "z":pca_pts[:,2],
         "mode":"lines",
         "name":"pca[%d]"%(idnum),
-        "line":{"color":pcacolor,"size":3}
+        "line":{"color":pcacolor,"width":2}
     }
     return pca_plot
 

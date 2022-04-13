@@ -22,28 +22,32 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None ):
     print ("number of mctracks: ",event_mctrack.size())
     for itrack in range(event_mctrack.size()):
         mctrack = event_mctrack.at(itrack)
-        steps_np = extract_mctrackpts( mctrack )
         if mctrack.PdgCode()==2112:
             continue
-
         if origin is not None and origin!=mctrack.Origin():
             continue
-
-        # cosmic origin
-        color = 'rgb(0,0,255)'
-        if mctrack.Origin()==1:
-            # neutrino pixels
-            color = 'rgb(0,255,255)'
-
-
-        trackvis = {
-            "type":"scatter3d",
-            "x":steps_np[:,0],
-            "y":steps_np[:,1],
-            "z":steps_np[:,2],
-            "mode":"lines",
-            "name":"pdg[%d]\nid[%d]"%(mctrack.PdgCode(),mctrack.TrackID()),
-            "line":{"color":color,"width":2},
-            }
+        trackvis = visualize_larlite_mctrack( mctrack )
         track_vis.append( trackvis )
     return track_vis
+
+def visualize_larlite_mctrack( mctrack, origin=None ):
+
+    steps_np = extract_mctrackpts( mctrack )
+
+    # cosmic origin
+    color = 'rgb(0,0,255)'
+    if mctrack.Origin()==1:
+        # neutrino pixels
+        color = 'rgb(0,255,255)'
+
+    trackvis = {
+        "type":"scatter3d",
+        "x":steps_np[:,0],
+        "y":steps_np[:,1],
+        "z":steps_np[:,2],
+        "mode":"lines",
+        "name":"pdg[%d]\nid[%d]"%(mctrack.PdgCode(),mctrack.TrackID()),
+        "line":{"color":color,"width":2},
+    }
+
+    return trackvis

@@ -11,8 +11,8 @@ args = parser.parse_args(sys.argv[1:])
 import os
 import json
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
@@ -46,7 +46,7 @@ def load_event( io_ll, ientry ):
     evopflash_cosmic = io_ll.get_data(larlite.data.kOpFlash,"simpleFlashCosmic")
 
     
-    entry_data["flash"] += lardly.data.larlite_opflash_3d( evopflash_beam.at(0) )
+    entry_data["flash"] += lardly.data.visualize_larlite_opflash_3d( evopflash_beam.at(0) )
 
     return entry_data
 

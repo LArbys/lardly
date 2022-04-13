@@ -1,5 +1,19 @@
 import numpy as np
 
+default_pid_colors = {2212:'rgb(153,55,255)', # protons
+                      13:'rgb(255,0,0)', # muons
+                      -13:'rgb(255,0,0)', # muons
+                      211:'rgb(255,128,255)',# pions
+                      -211:'rgb(255,128,255)',# pions
+                      0:'rgb(0,0,0)'# other
+                      }
+
+try:
+    from ublarcvapp import ublarcvapp
+    tracksce = ublarcvapp.mctools.TruthTrackSCE()
+except:
+    tracksce = None
+
 def extract_mctrackpts( mctrack, sce=None ):
     from larlite import larlite, larutil
     cm_per_tick = larutil.LArProperties.GetME().DriftVelocity()*0.5
@@ -16,18 +30,27 @@ def extract_mctrackpts( mctrack, sce=None ):
         steps_np[istep,:] = (x,step.Y(),step.Z())
     return steps_np
 
-def visualize_larlite_event_mctrack( event_mctrack, origin=None ):
+def visualize_larlite_event_mctrack( event_mctrack, origin=None,
+                                     do_sce_correction=False,
+                                     color_labels=default_pid_colors,
+                                     width=3, color_by_origin=False ):
 
     track_vis = []
+    
     print ("number of mctracks: ",event_mctrack.size())
+
     for itrack in range(event_mctrack.size()):
         mctrack = event_mctrack.at(itrack)
+        
         if mctrack.PdgCode()==2112:
-            continue
+            continue #skip neutrons
+
         if origin is not None and origin!=mctrack.Origin():
             continue
+
         trackvis = visualize_larlite_mctrack( mctrack )
         track_vis.append( trackvis )
+
     return track_vis
 
 def visualize_larlite_mctrack( mctrack, origin=None ):

@@ -36,12 +36,12 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None,
                                      width=3, color_by_origin=False ):
 
     track_vis = []
-    
+
     print ("number of mctracks: ",event_mctrack.size())
 
     for itrack in range(event_mctrack.size()):
         mctrack = event_mctrack.at(itrack)
-        
+
         if mctrack.PdgCode()==2112:
             continue #skip neutrons
 
@@ -53,15 +53,34 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None,
 
     return track_vis
 
-def visualize_larlite_mctrack( mctrack, origin=None ):
+def visualize_larlite_mctrack( mctrack, origin=None,
+                                do_sce_correction=False,
+                                color_labels=default_pid_colors,
+                                width=3, color_by_origin=False ):
 
-    steps_np = extract_mctrackpts( mctrack )
+    pid = mctrack.PdgCode()
 
     # cosmic origin
-    color = 'rgb(0,0,255)'
-    if mctrack.Origin()==1:
-        # neutrino pixels
-        color = 'rgb(0,255,255)'
+    if color_by_origin:
+        color = 'rgb(0,0,255)'
+        if mctrack.Origin()==1:
+            # neutrino pixels
+            color = 'rgb(0,255,255)'
+    else:
+        if pid in color_labels:
+            color = color_labels[pid]
+        else:
+            color = color_labels[0]
+
+    if do_sce_correction and tracksce is not None:
+        lltrack = tracksce.applySCE( mctrack )
+        npoints = lltrack.NumberTrajectoryPoints()
+        steps_np = np.zeros( (npoints,3 ) )
+        for ipt in range(npoints):
+            for i in range(3):
+                steps_np[ipt,i] = lltrack.LocationAtPoint(ipt)(i)
+    else:
+        steps_np = extract_mctrackpts( mctrack )
 
     trackvis = {
         "type":"scatter3d",
@@ -69,8 +88,8 @@ def visualize_larlite_mctrack( mctrack, origin=None ):
         "y":steps_np[:,1],
         "z":steps_np[:,2],
         "mode":"lines",
-        "name":"pdg[%d]\nid[%d]"%(mctrack.PdgCode(),mctrack.TrackID()),
-        "line":{"color":color,"width":2},
+        "name":"pdg[%d]\nid[%d]"%(pid,mctrack.TrackID()),
+        "line":{"color":color,"width":width},
     }
 
     return trackvis

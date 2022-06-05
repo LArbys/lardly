@@ -62,7 +62,7 @@ class DetectorOutlineFromLarlite:
                     "y": Ye,
                     "z": Ze,
                     "mode": "lines",
-                    "name": "",
+                    "name": "(%d,%d)"%(icryo,itpc),
                     "line": {"color": "rgb(0,0,0)", "width": 5},
                 }
                 self.tpc_dict[(icryo,itpc)] = lines

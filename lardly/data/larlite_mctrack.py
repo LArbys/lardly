@@ -90,7 +90,7 @@ def visualize_larlite_mctrack( mctrack, origin=None,
             for i in range(3):
                 steps_np[ipt,i] = lltrack.LocationAtPoint(ipt)(i)
     else:
-        steps_np = extract_mctrackpts( mctrack, no_offset )
+        steps_np = extract_mctrackpts( mctrack, no_offset=no_offset )
 
     trackvis = {
         "type":"scatter3d",

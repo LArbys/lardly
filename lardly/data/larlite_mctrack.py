@@ -52,7 +52,13 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None,
         if origin is not None and origin!=mctrack.Origin():
             continue
 
-        trackvis = visualize_larlite_mctrack( mctrack, do_sce_correction, no_offset )
+
+        trackvis = visualize_larlite_mctrack( mctrack, do_sce_correction=do_sce_correction,
+                                              color_labels=color_labels,
+                                              width=width,
+                                              color_by_origin=color_by_origin,
+                                              no_offset=no_offset)
+
         track_vis.append( trackvis )
 
     return track_vis

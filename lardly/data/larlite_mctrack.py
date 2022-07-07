@@ -14,7 +14,7 @@ try:
 except:
     tracksce = None
 
-def extract_mctrackpts( mctrack, sce=None ):
+def extract_mctrackpts( mctrack, sce=None, no_offset=False ):
     from larlite import larlite, larutil
     cm_per_tick = larutil.LArProperties.GetME().DriftVelocity()*0.5
 
@@ -27,13 +27,17 @@ def extract_mctrackpts( mctrack, sce=None ):
         tick = larutil.TimeService.GetME().TPCG4Time2Tick(t) + step.X()/(cm_per_tick)
         x  = (tick - 3200)*cm_per_tick
 
-        steps_np[istep,:] = (x,step.Y(),step.Z())
+        if no_offset: # plot raw mcstep X position instead of conversion above
+            steps_np[istep,:] = (step.X(),step.Y(),step.Z())
+        else:
+            steps_np[istep,:] = (x,step.Y(),step.Z())
+
     return steps_np
 
 def visualize_larlite_event_mctrack( event_mctrack, origin=None,
                                      do_sce_correction=False,
                                      color_labels=default_pid_colors,
-                                     width=3, color_by_origin=False ):
+                                     width=3, color_by_origin=False, no_offset=False ):
 
     track_vis = []
 
@@ -48,7 +52,7 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None,
         if origin is not None and origin!=mctrack.Origin():
             continue
 
-        trackvis = visualize_larlite_mctrack( mctrack )
+        trackvis = visualize_larlite_mctrack( mctrack, do_sce_correction, no_offset )
         track_vis.append( trackvis )
 
     return track_vis
@@ -56,7 +60,7 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None,
 def visualize_larlite_mctrack( mctrack, origin=None,
                                 do_sce_correction=False,
                                 color_labels=default_pid_colors,
-                                width=3, color_by_origin=False ):
+                                width=3, color_by_origin=False, no_offset=False ):
 
     pid = mctrack.PdgCode()
 
@@ -80,7 +84,7 @@ def visualize_larlite_mctrack( mctrack, origin=None,
             for i in range(3):
                 steps_np[ipt,i] = lltrack.LocationAtPoint(ipt)(i)
     else:
-        steps_np = extract_mctrackpts( mctrack )
+        steps_np = extract_mctrackpts( mctrack, no_offset )
 
     trackvis = {
         "type":"scatter3d",

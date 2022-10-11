@@ -31,11 +31,7 @@ def extract_mctrackpts( mctrack, sce=None, apply_t0_offset=True ):
         else:
             x  = step.X()
 
-
-        if no_offset: # plot raw mcstep X position instead of conversion above
-            steps_np[istep,:] = (step.X(),step.Y(),step.Z())
-        else:
-            steps_np[istep,:] = (x,step.Y(),step.Z())
+        steps_np[istep,:] = (x,step.Y(),step.Z())
 
     return steps_np
 

@@ -14,7 +14,8 @@ try:
 except:
     tracksce = None
 
-def extract_mctrackpts( mctrack, sce=None, no_offset=False ):
+
+def extract_mctrackpts( mctrack, sce=None, apply_t0_offset=True ):
     from larlite import larlite, larutil
     cm_per_tick = larutil.LArProperties.GetME().DriftVelocity()*0.5
 
@@ -24,8 +25,12 @@ def extract_mctrackpts( mctrack, sce=None, no_offset=False ):
         step = mctrack.at(istep)
         t = step.T()
 
-        tick = larutil.TimeService.GetME().TPCG4Time2Tick(t) + step.X()/(cm_per_tick)
-        x  = (tick - 3200)*cm_per_tick
+        if apply_t0_offset:
+            tick = larutil.TimeService.GetME().TPCG4Time2Tick(t) + step.X()/(cm_per_tick)
+            x  = (tick - 3200)*cm_per_tick            
+        else:
+            x  = step.X()
+
 
         if no_offset: # plot raw mcstep X position instead of conversion above
             steps_np[istep,:] = (step.X(),step.Y(),step.Z())
@@ -37,7 +42,8 @@ def extract_mctrackpts( mctrack, sce=None, no_offset=False ):
 def visualize_larlite_event_mctrack( event_mctrack, origin=None,
                                      do_sce_correction=False,
                                      color_labels=default_pid_colors,
-                                     width=3, color_by_origin=False, no_offset=False ):
+                                     width=3, color_by_origin=False,
+                                     apply_t0_offset=True):
 
     track_vis = []
 
@@ -57,16 +63,16 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None,
                                               color_labels=color_labels,
                                               width=width,
                                               color_by_origin=color_by_origin,
-                                              no_offset=no_offset)
-
+                                              apply_t0_offset=apply_t0_offset)
         track_vis.append( trackvis )
 
     return track_vis
 
 def visualize_larlite_mctrack( mctrack, origin=None,
-                                do_sce_correction=False,
-                                color_labels=default_pid_colors,
-                                width=3, color_by_origin=False, no_offset=False ):
+                               do_sce_correction=False,
+                               color_labels=default_pid_colors,
+                               width=3, color_by_origin=False,
+                               apply_t0_offset=True):
 
     pid = mctrack.PdgCode()
 
@@ -90,7 +96,7 @@ def visualize_larlite_mctrack( mctrack, origin=None,
             for i in range(3):
                 steps_np[ipt,i] = lltrack.LocationAtPoint(ipt)(i)
     else:
-        steps_np = extract_mctrackpts( mctrack, no_offset=no_offset )
+        steps_np = extract_mctrackpts( mctrack, apply_t0_offset=apply_t0_offset )
 
     trackvis = {
         "type":"scatter3d",

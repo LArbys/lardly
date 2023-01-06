@@ -72,14 +72,16 @@ def get_tpc_boundary_plot(cryoid=0,tpcid=0,color=(0,0,0)):
         raise ValueError("Could not load ROOT, larlite, or larlite::larutil")
 
     detid = larutil.LArUtilConfig.Detector()
-    if detid == larutil.LArUtilConfig.geo.kDetIdMax:
+
+    if detid == larlite.geo.kDetIdMax:
         print("Detector Configuration not set")
         print("Call larutil.LArUtilConfig.SetDetector( DetId_t )")
         return None
 
     minbound = rt.TVector3()
     maxbound = rt.TVector3()
-    larutil.Geometry.GetME().TPCBoundaries(minbound, maxbound, tpcid, cryoid )
+
+    larlite.larutil.Geometry.GetME().TPCBoundaries(minbound, maxbound, tpcid, cryoid )
 
     #print(bounds)
     top_pts  = [ [minbound[0],maxbound[1], minbound[2]],
@@ -126,4 +128,5 @@ def get_tpc_boundary_plot(cryoid=0,tpcid=0,color=(0,0,0)):
         "line": {"color": "rgb(%d,%d,%d)"%color, "width": 5},
     }
 
-    return lines
+    return lines    
+

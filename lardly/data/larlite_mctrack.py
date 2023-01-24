@@ -15,6 +15,7 @@ except:
     tracksce = None
 
 def extract_mctrackpts( mctrack, sce=None, no_offset=False, set_tick=0 ):
+
     from larlite import larlite, larutil
     cm_per_tick = larutil.LArProperties.GetME().DriftVelocity()*0.5
 
@@ -40,8 +41,11 @@ def extract_mctrackpts( mctrack, sce=None, no_offset=False, set_tick=0 ):
 
         if no_offset: # plot raw mcstep X position instead of conversion above
             steps_np[istep,:] = (step.X(),step.Y(),step.Z())
+
         else:
-            steps_np[istep,:] = (x,step.Y(),step.Z())
+            x  = step.X()
+
+        steps_np[istep,:] = (x,step.Y(),step.Z())
 
     return steps_np
 
@@ -49,6 +53,7 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None,
                                      do_sce_correction=False,
                                      color_labels=default_pid_colors,
                                      width=3, color_by_origin=False, no_offset=False, set_tick=0 ):
+
 
     track_vis = []
 

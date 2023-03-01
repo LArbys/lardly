@@ -63,7 +63,8 @@ class DetectorOutline:
         return [lines]
 
                 
-def get_tpc_boundary_plot(cryoid=0,tpcid=0,color=(0,0,0)):
+def get_tpc_boundary_plot(cryoid=0,tpcid=0,color=(0,0,0),use_tick_dimensions=False):
+
     try:
         import ROOT as rt
         from larlite import larlite
@@ -82,6 +83,16 @@ def get_tpc_boundary_plot(cryoid=0,tpcid=0,color=(0,0,0)):
     maxbound = rt.TVector3()
 
     larlite.larutil.Geometry.GetME().TPCBoundaries(minbound, maxbound, tpcid, cryoid )
+    if use_tick_dimensions:
+        from ROOT import larutil
+        nticks = float(larutil.DetectorProperties.GetME().ReadOutWindowSize())
+        tpcdriftdir = larlite.larutil.Geometry.GetME().TPCDriftDir(tpcid,cryoid)
+        if tpcdriftdir[0]>0:
+            minbound[0] = 0
+            maxbound[0] = nticks
+        else:
+            minbound[0] = -nticks
+            maxbound[0] = 0
 
     #print(bounds)
     top_pts  = [ [minbound[0],maxbound[1], minbound[2]],

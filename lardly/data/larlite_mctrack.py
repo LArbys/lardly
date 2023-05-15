@@ -1,4 +1,5 @@
 import numpy as np
+import ROOT as rt
 
 # define the default colors for particles
 from .default_pid_colors import default_pid_colors,get_pid_color
@@ -15,14 +16,23 @@ def extract_mctrackpts( mctrack, sce=None, no_offset=False, set_tick=0, trigger_
     from larlite import larlite, larutil
     cm_per_tick = larutil.LArProperties.GetME().DriftVelocity()*0.5
 
+    geo = larlite.larutil.Geometry.GetME()
+
     #print("no offset ", no_offset)
     #print("set_tick in extract_mctrackpts: ", set_tick)
+    if mctrack.size()==0:
+        return None
 
     # convert mctrack points to image pixels
-    steps_np  = np.zeros( (mctrack.size(),3) )
+    steps = []
     for istep in range(mctrack.size()):
         step = mctrack.at(istep)
         t = step.T()
+
+        loc = rt.TVector3( step.X(), step.Y(), step.Z() )
+        cryo_tpc_idx = geo.GetContainingCryoAndTPCIDs( loc )
+        #if cryo_tpc_idx.size()==0:
+        #    continue
 
         if set_tick!=0:
             tick = set_tick
@@ -39,8 +49,12 @@ def extract_mctrackpts( mctrack, sce=None, no_offset=False, set_tick=0, trigger_
         #    steps_np[istep,:] = (step.X(),step.Y(),step.Z())
         #else:
         #    x  = step.X()
-            
-        steps_np[istep,:] = (x,step.Y(),step.Z())
+        steps.append( [x,step.Y(),step.Z()] )
+
+    if len(steps)==0:
+        return None
+    
+    steps_np = np.array( steps )
 
     return steps_np
 
@@ -92,7 +106,7 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None,
 
     track_vis = []
 
-    print ("number of mctracks: ",event_mctrack.size())
+    print ("number of mctracks in container: ",event_mctrack.size())
 
     for itrack in range(event_mctrack.size()):
         mctrack = event_mctrack.at(itrack)
@@ -110,8 +124,9 @@ def visualize_larlite_event_mctrack( event_mctrack, origin=None,
                                               color_by_origin=color_by_origin,
                                               no_offset=no_offset,
                                               set_tick=set_tick)
-
-        track_vis.append( trackvis )
+        if trackvis is not None:
+            track_vis.append( trackvis )
+    print("number of mctrack plots (zero step plots removed): ",len(track_vis))
 
     return track_vis
 
@@ -148,6 +163,8 @@ def visualize_larlite_mctrack( mctrack, origin=None,
     else:
         #print("GETTING TO ELSE STATEMENT 2")
         steps_np = extract_mctrackpts( mctrack, no_offset=no_offset, set_tick=set_tick )
+        if steps_np is None:
+            return None
 
     trackvis = {
         "type":"scatter3d",

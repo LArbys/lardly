@@ -11,12 +11,15 @@ try:
 except:
     tracksce = None
 
-def extract_mctrackpts( mctrack, sce=None, no_offset=False, set_tick=0, trigger_tick=3200 ):
+def extract_mctrackpts( mctrack, sce=None, no_offset=False, set_tick=0, trigger_tick=3200,
+                        exclude_out_of_bounds=True ):
 
     from larlite import larlite, larutil
     cm_per_tick = larutil.LArProperties.GetME().DriftVelocity()*0.5
-
-    geo = larlite.larutil.Geometry.GetME()
+    try:
+        geo = larlite.larutil.Geometry.GetME()
+    except:
+        geo = larutil.Geometry.GetME()
 
     #print("no offset ", no_offset)
     #print("set_tick in extract_mctrackpts: ", set_tick)
@@ -30,7 +33,17 @@ def extract_mctrackpts( mctrack, sce=None, no_offset=False, set_tick=0, trigger_
         t = step.T()
 
         loc = rt.TVector3( step.X(), step.Y(), step.Z() )
-        cryo_tpc_idx = geo.GetContainingCryoAndTPCIDs( loc )
+        if exclude_out_of_bounds:
+            if loc[0]<-100 or loc[0]>360:
+                continue
+            if loc[1]<-300 or loc[1]>300:
+                continue
+            if loc[2]<-100 or loc[2]>1136:
+                continue
+        #try:
+        #    cryo_tpc_idx = geo.GetContainingCryoAndTPCIDs( loc )
+        #except:
+        #    cryo_tpc_idx = 0
         #if cryo_tpc_idx.size()==0:
         #    continue
 

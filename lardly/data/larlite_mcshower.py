@@ -37,6 +37,7 @@ def visualize3d_larlite_mcshower( larlite_mcshower,
                                   fixed_cone_len_cm=14.0, # radiation length
                                   no_offset=True,
                                   apply_sce=True,
+                                  exclude_out_of_bounds=True,
                                   origin=None ):
     shr = larlite_mcshower
 
@@ -99,6 +100,16 @@ def visualize3d_larlite_mcshower( larlite_mcshower,
             shrlen = shr.Start().E()/2.2
     else:
         shrlen = fixed_cone_len_cm
+
+    if exclude_out_of_bounds:
+        shower_end = [ shr_start_convert[i]+5*shrlen*shr_dir[i] for i in range(3) ]
+        for loc in [shr_start_convert,shower_end]:
+            if loc[0]<-100 or loc[0]>360:
+                return None
+            if loc[1]<-300 or loc[1]>300:
+                return None
+            if loc[2]<-100 or loc[2]>1136:
+                return None
 
     # define cone plot
     if ( (return_origtraj_cone is False)
@@ -190,6 +201,7 @@ def visualize_larlite_event_mcshower( ev_mcshower,
                                       return_origtraj_cone=False,
                                       return_detprofile=True,
                                       fixed_cone_len_cm=14.0,
+                                      exclude_out_of_bounds=True,                                      
                                       origin=None ):
     traces_v = []
 
@@ -201,7 +213,10 @@ def visualize_larlite_event_mcshower( ev_mcshower,
                                               no_offset=no_offset,
                                               apply_sce=apply_sce,
                                               fixed_cone_len_cm=fixed_cone_len_cm,
+                                              exclude_out_of_bounds=exclude_out_of_bounds,
                                               origin=origin )
+        if exclude_out_of_bounds and shr_v is None:
+            continue
         for x in shr_v:
             if x is not None:
                 traces_v.append(x)

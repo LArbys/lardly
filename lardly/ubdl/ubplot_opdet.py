@@ -1,4 +1,4 @@
-from .pmtpos import pmtposmap
+from .pmtpos import getPMTPosByOpChannel, getPMTPosByOpDet
 import numpy as np
 from plotly import graph_objects as go
 
@@ -47,9 +47,9 @@ def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_co
 
     return mesh,lines
 
-def make_opdet_plot( opdet_values, x_offset=0.0, pmt_radius_cm=10.0 ):
+def make_opdet_plot( opdet_values, pmt_radius_cm=15.2, use_opdet_index=True, use_v4_geom=True ):
 
-    print(opdet_values)
+    #print(opdet_values)
 
     all_pe = [ 0.0 for x in range(32) ]
     max_pe = 0.0
@@ -68,7 +68,11 @@ def make_opdet_plot( opdet_values, x_offset=0.0, pmt_radius_cm=10.0 ):
         value = (pe-min_pe)/(max_pe-min_pe)
         value = min( value, 1.0 )
         value = max( value, 0 )
-        center = [pmtposmap[ipmt][0]+x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
+        if use_opdet_index:
+            center = getPMTPosByOpDet(ipmt,use_v4_geom=use_v4_geom)
+        else:
+            center = getPMTPosByOpChannel(ipmt,use_v4_geom=use_v4_geom)
+        #center = [pmtposmap[ipmt][0]+x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
         mesh, outline = define_circle_mesh( center, pmt_radius_cm, value, nsteps=20 )
         circles.append( mesh )
         circles.append( outline )

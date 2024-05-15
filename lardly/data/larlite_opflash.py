@@ -1,6 +1,6 @@
 from __future__ import print_function
 import os,sys
-from ..ubdl.pmtpos import pmtposmap
+from ..ubdl.pmtpos import getPMTPosByOpChannel
 import numpy as np
 from plotly import graph_objects as go
 
@@ -50,7 +50,9 @@ def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_co
     return mesh,lines
 
 
-def visualize_larlite_opflash_3d( opflash, x_offset=-15.0, pmt_radius_cm=10.0, min_pe=None, max_pe=None ):
+def visualize_larlite_opflash_3d( opflash, pmt_radius_cm=15.24,
+                                  min_pe=None, max_pe=None,
+                                  use_v4_geom=True, use_opdet_index=True ):
 
     circles = []
     nsteps = 20
@@ -82,14 +84,18 @@ def visualize_larlite_opflash_3d( opflash, x_offset=-15.0, pmt_radius_cm=10.0, m
         value = (pe-min_pe)/(max_pe-min_pe)
         value = min( value, 1.0 )
         value = max( value, 0 )
-        center = [pmtposmap[ipmt][0]+x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
+        if use_opdet_index:
+            center = getPMTPosByOpDet(ipmt, use_v4_geom=use_v4_geom)
+        else:
+            center = getPMTPosByOpChannel(ipmt, use_v4_geom=use_v4_geom)
+        #center = [pmtposmap[ipmt][0]+x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
         mesh, outline = define_circle_mesh( center, pmt_radius_cm, value, nsteps=20 )
         circles.append( mesh )
         circles.append( outline )
         
     return circles
 
-def visualize_empty_opflash( x_offset=-15.0, pmt_radius_cm=10.0 ):
+def visualize_empty_opflash( pmt_radius_cm=15.2, use_v4_geom=True, use_opdet_index=True ):
 
     circles = []
     nsteps = 20
@@ -98,7 +104,10 @@ def visualize_empty_opflash( x_offset=-15.0, pmt_radius_cm=10.0 ):
     
     for ipmt in range(32):
         pe = 0.0
-        center = [pmtposmap[ipmt][0]+x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
+        if use_opdet_index:
+            center = getPMTPosByOpDet(ipmt, use_v4_geom=use_v4_geom)
+        else:
+            center = getPMTPosByOpChannel(ipmt, use_v4_geom=use_v4_geom)
         mesh, outline = define_circle_mesh( center, pmt_radius_cm, pe, nsteps=20 )
         circles.append( mesh )
         circles.append( outline )

@@ -111,10 +111,10 @@ def getPMTPosByOpDet( opdet, in_tpc_coord=True, use_v4_geom=True ):
         return pos_tpc_coord
     return pos_global    
         
-def getPMTPosByOpChannel( opch, in_tpc_coord=True, use_v4_geom=False ):
+def getPMTPosByOpChannel( opch, in_tpc_coord=True, use_v4_geom=True ):
     
     if use_v4_geom:
-        pos = (-11.0, _pmtposmap[opdet][1], _pmtposmap[opdet][2] )
+        pos = (-11.0, _pmtposmap[opch][1], _pmtposmap[opch][2] )
         return pos
 
     # else we use v12 geometry information.    

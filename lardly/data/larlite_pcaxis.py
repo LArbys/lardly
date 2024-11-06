@@ -31,7 +31,7 @@ def visualize_event_pcaxis( evpcaxis, color=None ):
     traces_v = []
 
 
-    for icluster in xrange(evpcaxis.size()):
+    for icluster in range(evpcaxis.size()):
     
         # PCA-axis
         pca_plot = visualize_pcaxis( evpcaxis.at(icluster), color=color, idnum=icluster )

@@ -13,10 +13,10 @@ def visualize_larcv_image2d( image2d, minz=0.0, maxz=200.0, reverse_ticks=False 
         maxx = 2400.0
     else:
         maxx = meta.max_x()
-    print("image shape: ",imgnp.shape," maxx=",maxx)
+    #print("image shape: ",imgnp.shape," maxx=",maxx)
     xaxis = np.linspace( meta.min_x(), maxx, endpoint=False, num=int(maxx/meta.pixel_width()) )
     yaxis = np.linspace( meta.min_y(), meta.max_y(), endpoint=False, num=meta.rows() )
-    print(type(imgnp),type(xaxis),type(yaxis))
+    #print(type(imgnp),type(xaxis),type(yaxis))
 
     imgnp[ imgnp<minz ] = 0
     imgnp[ imgnp>maxz ] = maxz

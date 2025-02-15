@@ -1,6 +1,18 @@
 import os,sys
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
+import plotly.graph_objects as go
 
-def parse_dlmerged_trees_and_make_widgets( tfile ):
+# class WidgetFactory:
+#   self __init__(self):
+#     pass
+
+from .wireplane_widget import make_imageplane_view_widget
+
+def parse_dlmerged_trees_and_make_widgets( app, tfile=None ):
     """
     We return some dash widgets based on the contents of the tfile passed to this function.
     Here is a list of trees we might want to act on in a standard uboone dlmerged file:
@@ -55,7 +67,20 @@ def parse_dlmerged_trees_and_make_widgets( tfile ):
   KEY: TTree	sparseimg_larflow_tree;1	larflow tree
   KEY: TTree	sparseimg_sparseuresnetout_tree;1	sparseuresnetout tree
     """
-    pass
+
+    wireplane_trees = []
+
+    if tfile is not None:
+      tlist = tfile.GetListOfKeys()
+      for i in range(tlist.GetEntries()):
+        key = str(tlist.At(i))
+        #print(key.GetName())
+
+        if "image2d" in key and "_tree" in key:
+          # make widget for image2d
+          wireplane_trees.append(key)
+
+    return {'wireplane_trees':wireplane_trees}
 
 def parse_dlmerged_trees_and_make_plots( tfile ):
     """

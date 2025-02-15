@@ -11,6 +11,9 @@ from dash.exceptions import PreventUpdate
 import plotly.graph_objects as go
 
 import lardly
+import lardly.ubdl.dlmerged_parsing as dlmerged_parsing
+import lardly.ubdl.wireplane_widget as wireplane_widget
+import lardly.ubdl.io_navigation_widget as io_nav_widget
 
 axis_template = {
     "showbackground": True,
@@ -58,25 +61,8 @@ app = dash.Dash(
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
 )
 
-# input: dlmerged file
-layout_input_dlmerged =html.Div([
-    html.Label("Enter dlmerged path (required):"),
-    dcc.Input(
-        id='file-path-input-dlmerged',
-        type='text',
-        placeholder='Choose input dlmerged file ...',
-        style={'width': '100%', 'marginBottom': '5px'}),
-    html.Button("Load file", id='button-load-dlmerged'),
-    html.Hr(),
-    html.Div([html.H4("File Info")],
-        id='file-info',style={'color':'black'}),
-    #html.Div(style={'borderFileInfo': '1px solid black', 'margin': '10px 0'}),
-    html.Hr(),
-    html.Div([html.Label("Error Messages")], id='error-message', style={'color': 'red'}),
-])
-
 app.layout = html.Div( [
-    layout_input_dlmerged,
+    io_nav_widget.make_ionavigation_widget(app),
     html.Hr(),
     html.Div( [
         dcc.Graph(
@@ -84,22 +70,12 @@ app.layout = html.Div( [
             figure=update_det3d_plot(),
             config={"editable": True, "scrollZoom": False},
         )], className="graph__container"),
-    ] )
+    html.Hr(),
+    wireplane_widget.make_imageplane_view_widget(app),
+    ])
 
-@app.callback(
-    [Output('det3d','figure'),
-     Output('file-info','children'),
-     Output('error-message','children')],
-    Input('button-load-dlmerged', 'n_clicks'),
-    State('file-path-input-dlmerged', 'value')
-)
-def update_filepath(n_clicks, filename):
-    print(filename)
-
-    fig = update_det3d_plot()
-    error_msgs = [html.Label("Error Messages")]
-    file_info = [html.H4("File Info"), html.Label(f"dlmerged path: {filename}")]
-    return  fig, file_info, error_msgs
+wireplane_widget.register_dropdown_callback(app)
+io_nav_widget.register_ionavigation_callbacks(app)
 
 
 

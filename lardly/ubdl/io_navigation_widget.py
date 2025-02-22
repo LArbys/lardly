@@ -7,10 +7,14 @@ from dash.exceptions import PreventUpdate
 import plotly.graph_objects as go
 
 import ROOT as rt
+from larlite import larlite
 from larcv import larcv
 import lardly
+from lardly.ubdl.det3d_plot_factory import make_applicable_det3d_plot_list, set_det3d_io
 
 _ionav_iomanager = None
+_ionav_storageman = None
+_ionav_available_trees_list = []
 
 def make_ionavigation_widget(app, iomanager=None ):
 
@@ -25,11 +29,10 @@ def make_ionavigation_widget(app, iomanager=None ):
     widget = html.Div([
         html.H3("File Info"),
         html.Label("Enter dlmerged path (required):"),
-        dcc.Input(
+        dcc.Textarea(
             id='file-path-input-dlmerged',
-            type='text',
-            placeholder='Choose input dlmerged file ...',
-            style={'width': '100%', 'marginBottom': '5px'}),
+            placeholder='List input dlmerged file(s) ...',
+            style={'width': '100%', 'marginBottom': '5px','height':'100px'}),
         html.Button("Load file", id='button-load-dlmerged'),
         html.Hr(),
         html.Div([html.Label(f'Number of entries: {nentries}', id='io-nav-num-entries')],
@@ -66,48 +69,83 @@ def register_ionavigation_callbacks(app):
     @app.callback(
         [Output('io-nav-num-entries','children'),
         Output('wireplane-viewer-dropdown','options'),
+        Output('det3d-viewer-checklist-plotchoices','options'),
         Output('error-message','children')],
         Input('button-load-dlmerged', 'n_clicks'),
         State('file-path-input-dlmerged', 'value')
     )
-    def update_filepath(n_clicks, filename):
+    def update_filepath(n_clicks, textbox_input):
+        """
+        Runs when we click the button that loads the files.
+
+        When we do, we update the options for plots available to the 
+        wireplane and det3d viewer.
+        """
 
         global _ionav_iomanager
+        global _ionav_storageman
+        global _ionav_available_trees_list
 
-        if filename is None:
-            return dash.no_update, dash.no_update, dash.no_update
+        #print("textbox input: ",textbox_input)
 
-        if not os.path.exists(filename):
-            err_msgs = [
-                html.H5("Error Messages"),
-                html.Label('File path does not exist')
-            ]
-            return dash.no_update, dash.no_update, err_msgs
+        if textbox_input is None:
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
-        # defaults
-        app.larcv_io = larcv.IOManager(larcv.IOManager.kREAD,"larcv",larcv.IOManager.kTickBackward)
-        app.larcv_io.add_in_file( filename )
-        app.larcv_io.reverse_all_products()
-        app.larcv_io.initialize()
+        larcv_io = larcv.IOManager(larcv.IOManager.kREAD,"larcv",larcv.IOManager.kTickBackward)
+        larlite_io = larlite.storage_manager(larlite.storage_manager.kREAD)
+
+        # parse the text box: list of files
+        filelist = textbox_input.split()
+        for filename in filelist:
+
+            if not os.path.exists(filename):
+                err_msgs = [
+                    html.H5("Error Messages"),
+                    html.Label('File path does not exist')
+                ]
+                return dash.no_update, dash.no_update, dash.no_update, err_msgs
+
+            # defaults
+            larcv_io.add_in_file( filename )
+            larlite_io.add_in_filename( filename )
+
+            # get list of trees in this root file
+            tfile = rt.TFile(filename)
+            tlist = tfile.GetListOfKeys()
+            for i in range(tlist.GetEntries()):
+                key = str(tlist.At(i))
+                #print(key.GetName())
+                if "_tree" in key:
+                    tree_name = key.strip().split()[1]
+                    _ionav_available_trees_list.append(tree_name)
+            tfile.Close()
+            # end of tree key loop
+
+        larcv_io.reverse_all_products()
+        larcv_io.initialize()
+        larlite_io.open()
         #set_ionav_iomanager(app.larcv_io)
         
-        _ionav_iomanager = app.larcv_io
+        _ionav_iomanager  = larcv_io
+        _ionav_storageman = larlite_io
 
         nentries = _ionav_iomanager.get_n_entries()
 
-        # set options for wireplane viewer
-        tfile = rt.TFile(filename)
-        'wireplane-viewer-dropdown'
+        # with the list of trees set. we want to pass available plotters.
+        wire_plane_trees = []
+        for key in _ionav_available_trees_list:
+            if "image2d_" in key:
+                wire_plane_trees.append(key)
 
-        results = lardly.ubdl.dlmerged_parsing.parse_dlmerged_trees_and_make_widgets( app, tfile=tfile )
-        tfile.Close()
+        set_det3d_io( _ionav_storageman, _ionav_iomanager ) # give pointers to iomanagers to det3d modules
+        det3d_plotters, det3d_options = make_applicable_det3d_plot_list( _ionav_available_trees_list ) # activate certain plots based on available trees
 
         err_msgs = [
                 html.H5("Error Messages",style={'width':'100%'}),
                 html.Label('no errors')
             ]
 
-        return  f'Number of Entries: {nentries}', results['wireplane_trees'], err_msgs
+        return  f'Number of Entries: {nentries}', wire_plane_trees, det3d_plotters, err_msgs
 
 
     # callback for entry loading
@@ -139,6 +177,7 @@ def register_ionavigation_callbacks(app):
 
         try:
             _ionav_iomanager.read_entry(ientry)
+            _ionav_storageman.go_to(ientry)
             entry_info = f'Current Entry Loaded: {ientry}.'
         except Exception as e:
             entry_info = f'Current Entry: [Error loading entry] '+traceback.format_exc()

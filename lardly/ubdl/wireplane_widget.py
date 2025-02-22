@@ -78,8 +78,7 @@ def register_dropdown_callback(app):
             return dash.no_update, dash.no_update, dash.no_update
 
         ioman = get_ionav_iomanager()
-        info = str(value).strip().split()
-        treename = info[1]
+        treename = str(value).strip()
 
         prodname = treename.replace("image2d_","").replace("_tree","")
         ev_imgs = ioman.get_data("image2d",prodname)

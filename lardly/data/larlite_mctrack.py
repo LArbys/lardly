@@ -185,7 +185,7 @@ def visualize_larlite_mctrack( mctrack, origin=None,
         "y":steps_np[:,1],
         "z":steps_np[:,2],
         "mode":"lines",
-        "name":"pdg[%d]\nid[%d]"%(pid,mctrack.TrackID()),
+        "name":"id[%d]<br>pdg[%d]"%(mctrack.TrackID(),pid),
         "line":{"color":color,"width":width},
     }
 

@@ -5,7 +5,7 @@ from larcv import larcv
 #larcv.load_pyutil()
 import plotly.graph_objs as go
 
-def visualize_larcv_image2d( image2d, minz=0.0, maxz=200.0, reverse_ticks=False ):
+def visualize_larcv_image2d( image2d, minz=0.0, maxz=200.0, reverse_ticks=False, downsample=None ):
     meta = image2d.meta()
     imgnp = np.transpose( larcv.as_ndarray( image2d ), (1,0) )
     if meta.plane() in [0,1]:

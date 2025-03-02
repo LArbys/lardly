@@ -37,4 +37,4 @@ det3d_viewer.register_det3d_callbacks(app)
 
 
 if __name__ == "__main__":
-    app.run_server(port=8888,debug=True)
+    app.run_server(port=8891,debug=True)

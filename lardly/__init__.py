@@ -1,6 +1,6 @@
-import ROOT
-from larcv import larcv
-larcv.load_pyutil
+#import ROOT
+#from larcv import larcv
+#larcv.load_pyutil
 from .detectoroutline import *
 from .evdimageoutline import *
 from .crtoutline import *

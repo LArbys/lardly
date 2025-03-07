@@ -14,6 +14,7 @@ from lardly.ubdl.det3d_plot_factory import make_applicable_det3d_plot_list, set_
 
 _ionav_iomanager = None
 _ionav_storageman = None
+_ionav_recotree = None
 _ionav_available_trees_list = []
 
 def make_ionavigation_widget(app, iomanager=None ):
@@ -63,6 +64,14 @@ def get_ionav_iomanager():
     global _ionav_iomanager
     return _ionav_iomanager
 
+def set_ionav_recotree(recotree):
+    global _ionav_recotree
+    _ionav_recotree = recotree
+
+def get_ionav_recotree():
+    global _ionav_recotree
+    return _ionav_recotree
+
 def register_ionavigation_callbacks(app):
 
     # callback for loading the file
@@ -84,6 +93,7 @@ def register_ionavigation_callbacks(app):
 
         global _ionav_iomanager
         global _ionav_storageman
+        global _ionav_recotree
         global _ionav_available_trees_list
 
         #print("textbox input: ",textbox_input)
@@ -93,6 +103,7 @@ def register_ionavigation_callbacks(app):
 
         larcv_io = larcv.IOManager(larcv.IOManager.kREAD,"larcv",larcv.IOManager.kTickBackward)
         larlite_io = larlite.storage_manager(larlite.storage_manager.kREAD)
+        recoTree = rt.TChain("KPSRecoManagerTree")
 
         # parse the text box: list of files
         filelist = textbox_input.split()
@@ -114,8 +125,13 @@ def register_ionavigation_callbacks(app):
             tlist = tfile.GetListOfKeys()
             for i in range(tlist.GetEntries()):
                 key = str(tlist.At(i))
+
+                if 'KPSRecoManagerTree' in key:
+                    recoTree.AddFile( filename )
+                    tree_name = key.strip().split()[1]
+                    _ionav_available_trees_list.append(tree_name)
                 #print(key.GetName())
-                if "_tree" in key:
+                elif "_tree" in key:
                     tree_name = key.strip().split()[1]
                     _ionav_available_trees_list.append(tree_name)
             tfile.Close()
@@ -131,13 +147,25 @@ def register_ionavigation_callbacks(app):
 
         nentries = _ionav_iomanager.get_n_entries()
 
+        # look for reco tree in file
+        nentries_reco = recoTree.GetEntries()
+        print("Reco num entries: ",nentries_reco)
+
+        if nentries_reco>0:
+            if  nentries!=nentries_reco:
+                print("WARNING: number of reco tree entries and larcv entries do not match. Expect errors in alignment.")
+            set_ionav_recotree( recoTree )
+        else:
+            set_ionav_recotree( None )
+
         # with the list of trees set. we want to pass available plotters.
         wire_plane_trees = []
         for key in _ionav_available_trees_list:
             if "image2d_" in key:
                 wire_plane_trees.append(key)
 
-        set_det3d_io( _ionav_storageman, _ionav_iomanager ) # give pointers to iomanagers to det3d modules
+
+        set_det3d_io( _ionav_storageman, _ionav_iomanager, _ionav_recotree ) # give pointers to iomanagers to det3d modules
         det3d_plotters, det3d_options = make_applicable_det3d_plot_list( _ionav_available_trees_list ) # activate certain plots based on available trees
 
         err_msgs = [
@@ -158,6 +186,8 @@ def register_ionavigation_callbacks(app):
 
 
         global _ionav_iomanager
+        global _ionav_recotree
+        global _ionav_storageman
 
         print("ionav button press: ", entry_text, " ",_ionav_iomanager)
 
@@ -178,6 +208,8 @@ def register_ionavigation_callbacks(app):
         try:
             _ionav_iomanager.read_entry(ientry)
             _ionav_storageman.go_to(ientry)
+            if _ionav_recotree is not None:
+                _ionav_recotree.GetEntry(ientry)
             entry_info = f'Current Entry Loaded: {ientry}.'
         except Exception as e:
             entry_info = f'Current Entry: [Error loading entry] '+traceback.format_exc()

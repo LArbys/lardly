@@ -46,11 +46,19 @@ def visualize3d_larlite_mcshower( larlite_mcshower,
         return [None,None,None]
 
     # meta data we will use for hover text
-    meta = np.zeros( (1,3) )
-    meta[0,0] = shr.PdgCode()
-    meta[0,1] = shr.Origin()
-    meta[0,2] = shr.Start().E()
-    hovertemplate="x:%{x:.2f}<br>y:%{y:.2f}<br>z:%{z:.2f}<br>pdg:%{customdata[0]:%d}<br>origin:%{customdata[1]:%d}<br>MeV:%{customdata[2]:.2f}"
+    meta = [
+        [int(shr.PdgCode()),int(shr.Origin()),float(shr.Start().E())],
+        [int(shr.PdgCode()),int(shr.Origin()),float(shr.Start().E())]
+    ]
+    print(meta)
+    hovertemplate="""
+        x:%{x:.2f}<br>
+        y:%{y:.2f}<br>
+        z:%{z:.2f}<br>
+        pdg:%{customdata[0]}<br>
+        origin:%{customdata[1]}<br>
+        MeV:%{customdata[2]:.2f}
+        """
 
     # draw cone plot
     # first, we create a fake mctrack in order to use some existing tools to apply space-charge effect
@@ -186,7 +194,7 @@ def visualize3d_larlite_mcshower( larlite_mcshower,
             "y":profpts[1,:],
             "z":profpts[2,:],
             "mode":"lines",
-            "name":"profile[%d]"%(shr.TrackID()),
+            "name":"ShowerProfile[%d]"%(shr.TrackID()),
             "line":{"color":profcolor,"width":4},
             "customdata":meta,
             "hovertemplate":hovertemplate

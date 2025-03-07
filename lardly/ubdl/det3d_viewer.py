@@ -74,10 +74,10 @@ def register_det3d_callbacks(app):
             return [make_default_plot()]
 
         traces = det3d_plot_factory.make_det3d_traces( selected_plots )
-        if traces is None or len(traces)==0:
-            return [make_default_plot()]
-
+        print("number of returned traces: ",len(traces))
         fig = make_default_plot()
-        fig.add_traces(traces)
+        for plot in traces:
+            print(plot)
+            fig.add_trace(plot)
         return [fig]
     

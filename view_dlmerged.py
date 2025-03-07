@@ -15,7 +15,8 @@ import lardly.ubdl.dlmerged_parsing as dlmerged_parsing
 import lardly.ubdl.wireplane_widget as wireplane_widget
 import lardly.ubdl.io_navigation_widget as io_nav_widget
 import lardly.ubdl.det3d_viewer as det3d_viewer
-import lardly.ubdl.det3d_truth_plot # register truth trajectory plotter
+import lardly.ubdl.det3d_truth_plot # register plotter
+import lardly.ubdl.det3d_recoshower_plot # register plotter
 
 app = dash.Dash(
     __name__,
@@ -25,9 +26,9 @@ app = dash.Dash(
 app.layout = html.Div( [
     io_nav_widget.make_ionavigation_widget(app),
     html.Hr(),
-    det3d_viewer.make_det3d_viewer(),
-    html.Hr(),
     wireplane_widget.make_imageplane_view_widget(app),
+    html.Hr(),
+    det3d_viewer.make_det3d_viewer(),    
     ])
 
 wireplane_widget.register_dropdown_callback(app)

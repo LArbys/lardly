@@ -1,6 +1,6 @@
 from __future__ import print_function
 import os,sys
-from ..ubdl.pmtpos import getPMTPosByOpChannel
+from ..ubdl.pmtpos import getPMTPosByOpChannel,getPMTPosByOpDet
 import numpy as np
 from plotly import graph_objects as go
 
@@ -17,9 +17,9 @@ def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_co
 
     # define vertex indices
     
-    i = np.ones( nsteps, dtype=np.int)*nsteps # always points to center
-    j = np.zeros( nsteps, dtype=np.int )
-    k = np.zeros( nsteps, dtype=np.int )
+    i = np.ones( nsteps, dtype=np.int64)*nsteps # always points to center
+    j = np.zeros( nsteps, dtype=np.int64 )
+    k = np.zeros( nsteps, dtype=np.int64 )
     for n in range(nsteps):
         j[n] = n
         if n+1==nsteps:

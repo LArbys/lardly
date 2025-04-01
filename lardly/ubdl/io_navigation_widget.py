@@ -34,6 +34,9 @@ def make_ionavigation_widget(app, iomanager=None ):
             id='file-path-input-dlmerged',
             placeholder='List input dlmerged file(s) ...',
             style={'width': '100%', 'marginBottom': '5px','height':'100px'}),
+        dcc.RadioItems(id='tick-direction',
+                       options=['TickForwards','TickBackwards'],
+                       value='TickForwards'),
         html.Button("Load file", id='button-load-dlmerged'),
         html.Hr(),
         html.Div([html.Label(f'Number of entries: {nentries}', id='io-nav-num-entries')],
@@ -81,9 +84,10 @@ def register_ionavigation_callbacks(app):
         Output('det3d-viewer-checklist-plotchoices','options'),
         Output('error-message','children')],
         Input('button-load-dlmerged', 'n_clicks'),
-        State('file-path-input-dlmerged', 'value')
+        State('file-path-input-dlmerged', 'value'),
+        State('tick-direction','value')
     )
-    def update_filepath(n_clicks, textbox_input):
+    def update_filepath(n_clicks, textbox_input, tick_direction):
         """
         Runs when we click the button that loads the files.
 
@@ -101,7 +105,10 @@ def register_ionavigation_callbacks(app):
         if textbox_input is None:
             return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
-        larcv_io = larcv.IOManager(larcv.IOManager.kREAD,"larcv",larcv.IOManager.kTickBackward)
+        if tick_direction=='TickBackwards':
+            larcv_io = larcv.IOManager(larcv.IOManager.kREAD,"larcv",larcv.IOManager.kTickBackward)
+        else:
+            larcv_io = larcv.IOManager(larcv.IOManager.kREAD,"larcv",larcv.IOManager.kTickForward)
         larlite_io = larlite.storage_manager(larlite.storage_manager.kREAD)
         recoTree = rt.TChain("KPSRecoManagerTree")
 

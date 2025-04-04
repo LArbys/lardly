@@ -44,11 +44,16 @@ def make_det3d_traces( selected_plots ):
     print("Make det3d plots: ",selected_plots)
     traces = []
     for plottype in selected_plots:
+        print("run selected plotttype: ",plottype)
         if plottype in _det3d_plot_factory:
+            print("getting functions for ",plottype)
             plotter = _det3d_plot_factory[plottype]
             fn_make_traces = plotter['makeplot']
+            print("  fn: ",fn_make_traces) 
             plot_traces = fn_make_traces( _det3d_plot_factory_ioll, _det3d_plot_factory_iolcv, _det3d_plot_factory_recotree )
-            print("number of traces from ",plottype,": ",len(plot_traces))
+            print("  number of traces from ",plottype,": ",len(plot_traces))
             if len(plot_traces)>0:
                 traces += plot_traces
+        else:
+            print("  plottype=",plottype," not in factory dict? keys=",_det3d_plot_factor.keys())
     return traces

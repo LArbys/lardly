@@ -22,12 +22,12 @@ def make_plot_option_widgets( keys ):
     """
     no options
     """
-    return [html.Label('RecoShower: no options')]
+    return [html.Label('RecoNu: no options')]
 
 def make_traces( iolarlite, iolarcv, recoTree ):
     
     nvertices = recoTree.nuvetoed_v.size()
-    print("num vertices: ",nvertices)
+    print("[det3d_recoshower_plot.py] num vertices: ",nvertices)
     traces = []
     for ivtx in range(nvertices):
         nuvtx = recoTree.nuvetoed_v.at(ivtx)
@@ -80,4 +80,4 @@ def make_traces( iolarlite, iolarcv, recoTree ):
 
     return traces
 
-register_det3d_plotter("RecoShowers",are_products_present,make_plot_option_widgets,make_traces)
+register_det3d_plotter("RecoNu",are_products_present,make_plot_option_widgets,make_traces)

@@ -62,7 +62,7 @@ def visualize_larlite_larflowhits( larlite_event_larflowhit, name="",score_thres
         "z": xyz[:ptsused,2],
         "mode":"markers",
         "name":name,
-        "marker":{"color":xyz[:ptsused,3],"size":1,"opacity":0.8,"colorscale":'Viridis'},
+        "marker":{"color":xyz[:ptsused,3],"size":1,"opacity":0.8,"colorscale":'Viridis',"cmax":1.0,"cmin":0.0},
     }
 
     return larflowhits

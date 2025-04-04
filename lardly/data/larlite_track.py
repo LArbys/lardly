@@ -31,6 +31,8 @@ def visualize_larlite_track( larlite_track, track_id=None, color=None ):
         if  ndqdx>0:
             for ipt in range(npoints):
                 vcolor[ipt] = larlite_track.DQdxAtPoint(ipt,p_dqdx)
+    elif type(color) is str and 'rgb' in color:
+        pass
     else:
         color = "rgb({},{},{})".format(color[0],color[1],color[2])
         

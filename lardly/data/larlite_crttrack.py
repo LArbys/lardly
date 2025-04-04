@@ -22,19 +22,43 @@ def visualize_larlite_crttrack( larlite_crttrack, notimeshift=False, marker_colo
     xyz[1,2] = larlite_crttrack.z2_pos
     xyz[1,3] = larlite_crttrack.ts2_ns_h2*0.001
 
+    customdata = np.zeros( (2,3) ) # columns: t1 us, tick1, plane1
+    customdata[0][0] = larlite_crttrack.ts2_ns_h1*0.001
+    customdata[0][1] = 3200 + larlite_crttrack.ts2_ns_h1*0.001/0.5 # tpc tick
+    customdata[0][2] = larlite_crttrack.plane1
+
+    customdata[1][0] = larlite_crttrack.ts2_ns_h2*0.001
+    customdata[1][1] = 3200 + larlite_crttrack.ts2_ns_h2*0.001/0.5 # tpc tick
+    customdata[1][2] = larlite_crttrack.plane2
+    hovertemplate = """
+    <b>x</b>: %{x}<br>
+    <b>y</b>: %{y}<br>
+    <b>z</b>: %{z}<br>
+    <b>t</b>: %{customdata[0]} usec<br>
+    <b>tick</b>: %{customdata[1]}<br>
+    <b>CRT plane</b>: %{customdata[2]}<br>
+    """
+
     crttrack = {
         "type":"scatter3d",
         "x": xyz[:,0],
         "y": xyz[:,1],
         "z": xyz[:,2],
         "name":"",
+        "mode":"lines+markers",
+        "hovertemplate":hovertemplate,
+        "customdata":customdata,
         "marker":{"color":marker_color,"size":8,"opacity":0.8},
-        "line":{"color":line_color,"size":1,"opacity":0.5},
+        "line":{"color":line_color,"width":2},
     }
 
     return crttrack
 
-def visualize_larlite_event_crttrack( larlite_event_crttrack, name="", window=[-500.0,2700], notimeshift=False ):
+def visualize_larlite_event_crttrack( larlite_event_crttrack, name="",
+                                      window=[-500.0,2700],
+                                      notimeshift=False,
+                                      marker_color='rgb(0,230,0)',
+                                      line_color='rgb(10,50,50)' ):
 
     from larlite import larutil
     dv = larutil.LArProperties.GetME().DriftVelocity()    
@@ -44,28 +68,10 @@ def visualize_larlite_event_crttrack( larlite_event_crttrack, name="", window=[-
     crttracks_v = []
     for itrack in range(ntracks):
         crttrack = larlite_event_crttrack.at(itrack)
-        if notimeshift:
-            dx = 0.0
-        else:
-            t_usec = 0.5*(crttrack.ts2_ns_h1 + crttrack.ts2_ns_h2)*0.001
-            dx = t_usec*dv
-        xyz = np.zeros( (2,3 ) )
-        xyz[0,0] = crttrack.x1_pos + dx
-        xyz[0,1] = crttrack.y1_pos
-        xyz[0,2] = crttrack.z1_pos
-        xyz[1,0] = crttrack.x2_pos + dx
-        xyz[1,1] = crttrack.y2_pos
-        xyz[1,2] = crttrack.z2_pos 
 
-        crttrack = {
-            "type":"scatter3d",
-            "x": xyz[:,0],
-            "y": xyz[:,1],
-            "z": xyz[:,2],
-            "mode":"line",
-            "name":"crttracks:{}".format(name),
-            "line":{"color":"rgb(0,225,0)","width":2,"opacity":0.8},
-        }
-        crttracks_v.append( crttrack )
+        trace = visualize_larlite_crttrack( crttrack, notimeshift=notimeshift,
+                                            marker_color=marker_color,
+                                            line_color=line_color )
+        crttracks_v.append( trace )
 
     return crttracks_v

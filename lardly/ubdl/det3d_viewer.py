@@ -77,7 +77,7 @@ def register_det3d_callbacks(app):
         print("number of returned traces: ",len(traces))
         fig = make_default_plot()
         for plot in traces:
-            print(plot)
+            #print(plot)
             fig.add_trace(plot)
         return [fig]
     

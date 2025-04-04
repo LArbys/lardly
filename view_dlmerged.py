@@ -16,8 +16,13 @@ import lardly.ubdl.dlmerged_parsing as dlmerged_parsing
 import lardly.ubdl.wireplane_widget as wireplane_widget
 import lardly.ubdl.io_navigation_widget as io_nav_widget
 import lardly.ubdl.det3d_viewer as det3d_viewer
-import lardly.ubdl.det3d_truth_plot # register plotter
-import lardly.ubdl.det3d_recoshower_plot # register plotter
+# register plotters
+import lardly.ubdl.det3d_truth_plot
+import lardly.ubdl.det3d_reconu_plot
+import lardly.ubdl.det3d_crt_plot
+import lardly.ubdl.det3d_intimeflash_plot
+import lardly.ubdl.det3d_larmatchhits_plot
+import lardly.ubdl.det3d_cosmictracks_plot
 
 app = dash.Dash(
     __name__,

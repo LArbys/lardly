@@ -52,8 +52,14 @@ def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_co
 
 def visualize_larlite_opflash_3d( opflash, pmt_radius_cm=15.24,
                                   min_pe=None, max_pe=None,
-                                  use_v4_geom=True, use_opdet_index=True ):
-
+                                  use_v4_geom=True,
+                                  use_opdet_index=True,
+                                  xpos_by_time=False,
+                                  pe_draw_threshold=0.0):
+    from larlite import larlite
+    from larlite import larutil
+    dv = larutil.LArProperties.GetME().DriftVelocity()
+    
     circles = []
     nsteps = 20
     # for ipmt in xrange(32):
@@ -81,6 +87,10 @@ def visualize_larlite_opflash_3d( opflash, pmt_radius_cm=15.24,
     
     for ipmt in range(32):
         pe = all_pe[ipmt]
+
+        if pe < pe_draw_threshold:
+            continue
+        
         value = (pe-min_pe)/(max_pe-min_pe)
         value = min( value, 1.0 )
         value = max( value, 0 )
@@ -88,8 +98,16 @@ def visualize_larlite_opflash_3d( opflash, pmt_radius_cm=15.24,
             center = getPMTPosByOpDet(ipmt, use_v4_geom=use_v4_geom)
         else:
             center = getPMTPosByOpChannel(ipmt, use_v4_geom=use_v4_geom)
-        #center = [pmtposmap[ipmt][0]+x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
-        mesh, outline = define_circle_mesh( center, pmt_radius_cm, value, nsteps=20 )
+
+            
+        if xpos_by_time:
+            t = opflash.Time()
+            xpos = t*dv
+            recenter = [xpos,center[1],center[2]]
+        else:
+            recenter = center
+        
+        mesh, outline = define_circle_mesh( recenter, pmt_radius_cm, value, nsteps=20 )
         circles.append( mesh )
         circles.append( outline )
         
@@ -108,6 +126,7 @@ def visualize_empty_opflash( pmt_radius_cm=15.2, use_v4_geom=True, use_opdet_ind
             center = getPMTPosByOpDet(ipmt, use_v4_geom=use_v4_geom)
         else:
             center = getPMTPosByOpChannel(ipmt, use_v4_geom=use_v4_geom)
+
         mesh, outline = define_circle_mesh( center, pmt_radius_cm, pe, nsteps=20 )
         circles.append( mesh )
         circles.append( outline )

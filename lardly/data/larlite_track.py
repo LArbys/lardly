@@ -3,13 +3,14 @@ import numpy as np
 from ROOT import std
 from larlite import larlite,larutil
 
-def visualize_larlite_track( larlite_track, track_id=None, color=None ):
+def visualize_larlite_track( larlite_track, track_id=None, color=None, show_projection_info=True ):
 
     npoints = larlite_track.NumberTrajectoryPoints()
     xyz = np.zeros( (npoints,3 ) )
     for ipt in range(npoints):
         for i in range(3):
             xyz[ipt,i] = larlite_track.LocationAtPoint(ipt)(i)
+
 
     if track_id is None:
         name = ""
@@ -35,7 +36,7 @@ def visualize_larlite_track( larlite_track, track_id=None, color=None ):
         pass
     else:
         color = "rgb({},{},{})".format(color[0],color[1],color[2])
-        
+
     track = {
         "type":"scatter3d",
         "x": xyz[:,0],
@@ -45,7 +46,34 @@ def visualize_larlite_track( larlite_track, track_id=None, color=None ):
         "name":name,
         "line":{"color":color,"width":2},
     }
-    
+        
+    if show_projection_info:
+        cm_per_tick = larutil.LArProperties.GetME().DriftVelocity()*0.5                
+        customdata = np.zeros( (npoints,5) )
+        hovertemplate="""
+        <b>x</b>: %{x:.1f}<br>
+        <b>y</b>: %{y:.1f}<br>
+        <b>z</b>: %{z:.1f}<br>
+        <b>t</b>: %{customdata[0]:.1f} usec<br>
+        <b>tick</b>: %{customdata[1]:.0f}<br>
+        <b>U</b>: %{customdata[2]:.0f}<br>
+        <b>V</b>: %{customdata[3]:.0f}<br>
+        <b>Y</b>: %{customdata[4]:.0f}<br>
+        """
+
+        for ipt in range(npoints):
+            loc = larlite_track.LocationAtPoint(ipt)
+            x = larlite_track.LocationAtPoint(ipt)[0]
+            tick = 3200 + x/cm_per_tick
+            t = x/cm_per_tick*0.5
+            customdata[ipt,0] = t
+            customdata[ipt,1] = tick
+            for p in range(3):
+                customdata[ipt,2+p] = larutil.Geometry.GetME().WireCoordinate( loc, p )
+
+        track['hovertemplate'] = hovertemplate
+        track['customdata'] = customdata
+
     if type(color) is str and "dqdx" in color:
         track["mode"] = "lines+markers"
         track["marker"] = {"color":vcolor,"size":3.0,"colorscale":"Viridis"}        

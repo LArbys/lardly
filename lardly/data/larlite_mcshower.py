@@ -180,8 +180,8 @@ def visualize3d_larlite_mcshower( larlite_mcshower,
     if momvec==(0.,0.,0.) or return_detprofile is False:
         shower_prof_trace = None
     else:
-        #print("def prof vtx: ",[shr.DetProfile().Position()[i] for i in range(3)])
-        #print("det prof mom: ",(profmom[0],profmom[1],profmom[2])," mag=",profmom.Mag())
+        print("def prof vtx: ",[shr.DetProfile().Position()[i] for i in range(3)])
+        print("det prof mom: ",(profmom[0],profmom[1],profmom[2])," mag=",profmom.Mag())
         for i in range(3):
             profpts[i,0] = shr.DetProfile().Position()[i]
             profpts[i,1] = shr.DetProfile().Position()[i] + shrlen*(profmom[i]/profmom.Mag())

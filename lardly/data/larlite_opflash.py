@@ -1,6 +1,6 @@
 from __future__ import print_function
 import os,sys
-from ..ubdl.pmtpos import getPMTPosByOpChannel,getPMTPosByOpDet
+from ..ubdl.pmtpos import getPMTPosByOpChannel, getPMTPosByOpDet
 import numpy as np
 from plotly import graph_objects as go
 

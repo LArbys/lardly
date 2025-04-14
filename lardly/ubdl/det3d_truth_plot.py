@@ -43,8 +43,8 @@ def make_traces( iolarlite, iolarcv, recotree ):
     traces = []
     if len(track_traces)>0:
         traces += track_traces
-    if len(shower_traces):
-        traces += shower_traces
+    #if len(shower_traces):
+    #    traces += shower_traces
 
     # for showers use mcpg (if have larcv)
     # nnodes = mcpg.node_v.size()

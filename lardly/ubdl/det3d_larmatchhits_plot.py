@@ -8,16 +8,19 @@ INTIME_TREE_NAME = "larmatch"
 
 def get_larmatchhits_treename_from_yaml():
     global INTIME_TREE_NAME
-    print("config file exists: ",os.path.exists("dlviewer.cfg"))
-    with open('dlviewer.cfg') as f:
-        cfg = yaml.safe_load(f.read())
-        config_key = 'larmatchhits_tree_name'
-        print(cfg)
-        if config_key in cfg:
-            treename = cfg[config_key]
-            print(f"getting '{configkey}' from config file: {treename}")
-            INTIME_TREE_NAME = treename[len("opflash_"):-len("_tree")]
-            return [cfg[config_key]]
+    if os.path.exists("dlviewer.cfg"):
+        print("config file exists: ",os.path.exists("dlviewer.cfg"))
+        with open('dlviewer.cfg') as f:
+            cfg = yaml.safe_load(f.read())
+            config_key = 'larmatchhits_tree_name'
+            print(cfg)
+            if config_key in cfg:
+                treename = cfg[config_key]
+                print(f"getting '{configkey}' from config file: {treename}")
+                INTIME_TREE_NAME = treename[len("opflash_"):-len("_tree")]
+                return [cfg[config_key]]
+    else:
+        pass
     
     return ["larflow3dhit_larmatch_tree"]
 

@@ -101,7 +101,7 @@ def make_traces( iolarlite, iolarcv, recoTree ):
             if nuvtx.track_isSecondary_v.at(itrack)==0:
                 nprim_tracks += 1.0
         for ishower in range(nuvtx.shower_v.size()):
-            if nuvtx.shower_isSecondary_v.at(itrack)==0:
+            if nuvtx.shower_isSecondary_v.at(ishower)==0:
                 nprim_showers += 1.0        
         vtxinfo[ivtx,8] = nprim_tracks
         vtxinfo[ivtx,9] = nprim_showers

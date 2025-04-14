@@ -8,16 +8,18 @@ INTIME_TREE_NAME = "simpleFlashBeam"
 
 def get_opflash_treename_from_yaml():
     global INTIME_TREE_NAME
-    print("config file exists: ",os.path.exists("dlviewer.cfg"))
-    with open('dlviewer.cfg') as f:
-        cfg = yaml.safe_load(f.read())
-        print(cfg)
-        if 'intime_tree_name' in cfg:
-            treename = cfg['intime_tree_name']
-            print("getting 'intime_tree_name' from config file: ",treename)
-            INTIME_TREE_NAME = treename[len("opflash_"):-len("_tree")]
-            return [cfg['intime_tree_name']]
-    
+    if os.path.exists("dlviewer.cfg"):
+        print("config file exists: ",os.path.exists("dlviewer.cfg"))
+        with open('dlviewer.cfg') as f:
+            cfg = yaml.safe_load(f.read())
+            print(cfg)
+            if 'intime_tree_name' in cfg:
+                treename = cfg['intime_tree_name']
+                print("getting 'intime_tree_name' from config file: ",treename)
+                INTIME_TREE_NAME = treename[len("opflash_"):-len("_tree")]
+                return [cfg['intime_tree_name']]
+    else:
+        pass
     return ["opflash_simpleFlashBeam_tree"]
 
 def are_products_present( keys ):

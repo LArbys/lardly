@@ -24,7 +24,9 @@ def make_plot_option_widgets( keys ):
     """
     return [html.Label('RecoNu: no options')]
 
-def make_traces( iolarlite, iolarcv, recoTree ):
+def make_traces( tree_dict ):
+
+    recoTree = tree_dict['recoTree']
     
     nvertices = recoTree.nuvetoed_v.size()
     print("[det3d_reconu_plot.py] num vertices: ",nvertices)

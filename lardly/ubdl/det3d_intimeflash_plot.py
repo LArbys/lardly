@@ -39,7 +39,10 @@ def make_plot_option_widgets( keys ):
     """
     return [html.Label('IntimeFlash: no options')]
 
-def make_traces( iolarlite, iolarcv, recoTree ):
+def make_traces( tree_dict ):
+
+    iolarlite = tree_dict['iolarlite']
+    
     print("call det3d_intimeflash_plot.make_traces")
     ev_flash = iolarlite.get_data("opflash",INTIME_TREE_NAME)
     print("  num in-time flash objects (in ",INTIME_TREE_NAME,"): ",ev_flash.size())

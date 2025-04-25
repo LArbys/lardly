@@ -25,7 +25,10 @@ def make_plot_option_widgets( keys ):
     """
     return [html.Label('RecoCRT: no options')]
 
-def make_traces( iolarlite, iolarcv, recoTree ):
+def make_traces( tree_dict ):
+
+    iolarlite = tree_dict['iolarlite']
+
     print("call det3d_crt_plot.make_traces")
     ev_crttrk = iolarlite.get_data("crttrack","crttrack")
     ev_crthit = iolarlite.get_data("crthit","crthitcorr")    

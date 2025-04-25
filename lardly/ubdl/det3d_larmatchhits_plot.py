@@ -41,7 +41,10 @@ def make_plot_option_widgets( keys ):
     """
     return [html.Label('larmatchhits: no options')]
 
-def make_traces( iolarlite, iolarcv, recoTree ):
+def make_traces( tree_dict ):
+
+    iolarlite = tree_dict['iolarlite']
+    
     print("call det3d_larmatchhits_plot.make_traces")
     
     ev_hits = iolarlite.get_data("larflow3dhit",INTIME_TREE_NAME)

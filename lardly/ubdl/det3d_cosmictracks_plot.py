@@ -34,7 +34,9 @@ def make_plot_option_widgets( keys ):
     """
     return [html.Label('cosmictracks: no options')]
 
-def make_traces( iolarlite, iolarcv, recoTree ):
+def make_traces( tree_dict ):
+
+    iolarlite = tree_dict['iolarlite']
     print("call det3d_cosmictracks_plot.make_traces")
     
     ev_boundary  = iolarlite.get_data("track",BOUNDARY_COSMIC_TREE_NAME)

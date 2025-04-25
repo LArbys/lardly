@@ -30,7 +30,10 @@ def make_plot_option_widgets( keys ):
     """
     return [html.Label('keypoints: no options')]
 
-def make_traces( iolarlite, iolarcv, recoTree ):
+def make_traces( tree_dict ):
+
+    recoTree = tree_dict['recoTree']
+    
     print("call det3d_keypoints_plot.make_traces")
     cm_per_tick = larutil.LArProperties.GetME().DriftVelocity()*0.5
     

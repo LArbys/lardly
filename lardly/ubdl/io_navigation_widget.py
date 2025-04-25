@@ -15,6 +15,10 @@ from lardly.ubdl.det3d_plot_factory import make_applicable_det3d_plot_list, set_
 _ionav_iomanager = None
 _ionav_storageman = None
 _ionav_recotree = None
+_ionav_eventTree = None
+_the_core_tree = None
+_the_core_treetype = None
+_the_core_nentries = 0
 _ionav_available_trees_list = []
 
 def make_ionavigation_widget(app, iomanager=None ):
@@ -63,6 +67,11 @@ def set_ionav_iomanager(iomanager):
     if iomanager is not None:
         _ionav_iomanager = iomanager
 
+def set_ionav_storageman(io_storageman):
+    global _ionav_storageman
+    if io_storageman is not None:
+        _ionav_storageman = iostrageman
+        
 def get_ionav_iomanager():
     global _ionav_iomanager
     return _ionav_iomanager
@@ -71,9 +80,17 @@ def set_ionav_recotree(recotree):
     global _ionav_recotree
     _ionav_recotree = recotree
 
+def set_ionav_eventTree(evTree):
+    global _ionav_eventTree
+    _ionav_eventTree = evTree
+
 def get_ionav_recotree():
     global _ionav_recotree
     return _ionav_recotree
+
+def get_ionav_eventTree():
+    global _ionav_eventTree
+    return _ionav_eventTree
 
 def register_ionavigation_callbacks(app):
 
@@ -99,6 +116,14 @@ def register_ionavigation_callbacks(app):
         global _ionav_storageman
         global _ionav_recotree
         global _ionav_available_trees_list
+        global _the_core_tree
+        global _the_core_treetype
+        global _the_core_nentries
+
+        set_ionav_recotree( None )
+        set_ionav_eventTree( None )
+        set_ionav_iomanager( None )
+        set_ionav_storageman( None )
 
         #print("textbox input: ",textbox_input)
 
@@ -111,6 +136,7 @@ def register_ionavigation_callbacks(app):
             larcv_io = larcv.IOManager(larcv.IOManager.kREAD,"larcv",larcv.IOManager.kTickForward)
         larlite_io = larlite.storage_manager(larlite.storage_manager.kREAD)
         recoTree = rt.TChain("KPSRecoManagerTree")
+        eventTree = rt.TChain("EventTree") # ntuple tree
 
         # parse the text box: list of files
         filelist = textbox_input.split()
@@ -137,6 +163,9 @@ def register_ionavigation_callbacks(app):
                     recoTree.AddFile( filename )
                     tree_name = key.strip().split()[1]
                     _ionav_available_trees_list.append(tree_name)
+                if 'EventTree' in key:
+                    eventTree.AddFile(filename)
+                    _ionav_available_trees_list.append(key)
                 #print(key.GetName())
                 elif "_tree" in key:
                     tree_name = key.strip().split()[1]
@@ -147,23 +176,52 @@ def register_ionavigation_callbacks(app):
         larcv_io.reverse_all_products()
         larcv_io.initialize()
         larlite_io.open()
-        #set_ionav_iomanager(app.larcv_io)
         
         _ionav_iomanager  = larcv_io
         _ionav_storageman = larlite_io
 
-        nentries = _ionav_iomanager.get_n_entries()
+        # determine entry tree
+        # these trees need an interface wrapper
+        _the_core_tree = None
+        nentries = 0
+        nentries_dict = {}
+        for (name,tree) in [("larcv",_ionav_iomanager),("larlite",_ionav_storageman),("reco",recoTree),("ntuple",eventTree)]:
+            if tree is not None:
+                if name in ["larcv"]:
+                    try:
+                        tree_nentries = tree.get_n_entries()
+                    except:
+                        tree_nentries = 0
+                elif name in ["larlite"]:
+                    try:
+                        tree_nentries = tree.get_nentries()
+                    except:
+                        tree_nentries = 0
+                elif name in ["reco","ntuple"]:
+                    try:
+                        tree_nentries = tree.GetEntries()
+                    except:
+                        tree_nentries = 0
+            print(name,": ",tree_nentries," entries")
+            nentries_dict[name] = tree_nentries
+            if tree_nentries!=0 and _the_core_tree is None:
+                _the_core_tree = tree
+                _the_core_treetype = name
+                _the_core_nentries = tree_nentries
+                nentries = tree_nentries
 
-        # look for reco tree in file
-        nentries_reco = recoTree.GetEntries()
-        print("Reco num entries: ",nentries_reco)
-
-        if nentries_reco>0:
-            if  nentries!=nentries_reco:
-                print("WARNING: number of reco tree entries and larcv entries do not match. Expect errors in alignment.")
+        #if nentries_dict['reco']>0:
+        #    if  nentries!=nentries_dict['reco']:
+        #        print("WARNING: number of reco tree entries and larcv entries do not match. Expect errors in alignment.")
+        if nentries_dict['reco']>0:
             set_ionav_recotree( recoTree )
         else:
             set_ionav_recotree( None )
+
+        if nentries_dict['ntuple']>0:
+            set_ionav_eventTree( eventTree )
+        else:
+            set_ionav_eventTree( None )
 
         # with the list of trees set. we want to pass available plotters.
         wire_plane_trees = []
@@ -171,8 +229,7 @@ def register_ionavigation_callbacks(app):
             if "image2d_" in key:
                 wire_plane_trees.append(key)
 
-
-        set_det3d_io( _ionav_storageman, _ionav_iomanager, _ionav_recotree ) # give pointers to iomanagers to det3d modules
+        set_det3d_io( _ionav_storageman, _ionav_iomanager, _ionav_recotree, _ionav_eventTree ) # give pointers to iomanagers to det3d modules
         det3d_plotters, det3d_options = make_applicable_det3d_plot_list( _ionav_available_trees_list ) # activate certain plots based on available trees
 
         err_msgs = [
@@ -194,32 +251,49 @@ def register_ionavigation_callbacks(app):
 
         global _ionav_iomanager
         global _ionav_recotree
+        global _ionac_eventTree
         global _ionav_storageman
+        global _the_core_tree
 
-        print("ionav button press: ", entry_text, " ",_ionav_iomanager)
+        print("ionav button press: ", entry_text, " ",_the_core_tree)
 
         try:
             ientry = int(entry_text.strip())
         except:
             ientry = -1
+
         
-        if _ionav_iomanager is None:
+        if _the_core_tree is None:
             return ['Current Entry: IOManager=None.']
 
-        nentries = _ionav_iomanager.get_n_entries()
+        if ientry<0 or ientry>=_the_core_nentries:
+            return [f'Current Entry: out of bounds. NENTRIES={_the_core_nentries}']
 
-        if ientry<0 or ientry>=nentries:
-            return ['Current Entry: out of bounds.']
-        
+        if _ionav_iomanager is not None:
+            try:
+                _ionav_iomanager.read_entry(ientry)
+            except:
+                pass
+            
+        if _ionav_storageman is not None:
+            try:
+                _ionav_storageman.go_to(ientry)
+            except:
+                pass
 
-        try:
-            _ionav_iomanager.read_entry(ientry)
-            _ionav_storageman.go_to(ientry)
-            if _ionav_recotree is not None:
+        if _ionav_recotree is not None:
+            try:
                 _ionav_recotree.GetEntry(ientry)
-            entry_info = f'Current Entry Loaded: {ientry}.'
-        except Exception as e:
-            entry_info = f'Current Entry: [Error loading entry] '+traceback.format_exc()
+            except:
+                pass
+
+        if _ionav_eventTree is not None:
+            try:
+                _ionav_eventTree.GetEntry(ientry)
+            except:
+                pass
+        
+        entry_info = f'Current Entry Loaded: {ientry}.'
         
         return [entry_info]
 

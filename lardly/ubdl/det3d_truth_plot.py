@@ -22,8 +22,10 @@ def make_plot_option_widgets( keys ):
     """
     return [html.Label('truthplot: no options')]
 
-def make_traces( iolarlite, iolarcv, recotree ):
+def make_traces( tree_dict ):
 
+    iolarlite = tree_dict['iolarlite']
+    
     
     cm_per_tick = larutil.LArProperties.GetME().DriftVelocity()*0.5
 

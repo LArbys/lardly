@@ -76,6 +76,8 @@ def register_det3d_callbacks(app):
         traces = det3d_plot_factory.make_det3d_traces( selected_plots )
         print("number of returned traces: ",len(traces))
         fig = make_default_plot()
+        if "RecoCRT" in selected_plots:
+            fig.layout['scene']['aspectratio']['z'] = 2
         for plot in traces:
             #print(plot)
             fig.add_trace(plot)

@@ -3,7 +3,42 @@ import numpy as np
 from .det3d_plot_factory import register_det3d_plotter
 import yaml
 import os
+import ROOT as rt
 from larlite import larutil
+from math import sqrt
+
+class T2Range:
+    def __init__(self):
+        # load range file, make inverse spline
+        self.rangefile_path = os.environ['LARFLOW_BASEDIR']+'/larflow/Reco/data/Proton_Muon_Range_dEdx_LAr_TSplines.root'
+        self.rangefile = rt.TFile( self.rangefile_path, 'open' )
+
+        proton_r2t = self.rangefile.Get("sProtonRange2T")
+        muon_r2t = self.rangefile.Get("sMuonRange2T")
+
+        # make graph between 0 to 10 meters at 1 cm increments
+        self.gproton = rt.TGraph(1000)
+        self.gmuon   = rt.TGraph(1000)
+        for i in range(0,1000):
+            r = i*1.0
+            ke_p = 0.0
+            ke_mu = 0.0
+            if i>0:
+                ke_p  = proton_r2t.Eval(r)
+                ke_mu = muon_r2t.Eval(r)
+            self.gproton.SetPoint(i,ke_p,r)
+            self.gmuon.SetPoint(i,ke_mu,r)
+        self.sproton = rt.TSpline3( "sProtonT2Range", self.gproton )
+        self.smuon   = rt.TSpline3( "sMuonT2Range", self.gmuon )
+
+    def get_range_muon( self, T_MeV ):
+        return self.smuon.Eval( T_MeV )
+
+    def get_range_proton( self, T_MeV):
+        return self.sproton.Eval( T_MeV )
+
+__t2range_util = T2Range()
+                
 
 def get_treenames_from_yaml():
     return ["EventTree"]
@@ -49,54 +84,92 @@ def make_traces( tree_dict ):
                  5:"5:delta"}
     names = ["shower","track","cosmic","nu"]
     sizes = [3,3,2,4]
-    hovertemplate="""
-    <b>type</b>: %{customdata[6]:.0f}<br>
-    <b>score</b>: %{customdata[5]:.2f}<br>
-    <b>x</b>: %{x:.1f}<br>
-    <b>y</b>: %{y:.1f}<br>
-    <b>z</b>: %{z:.1f}<br>
-    <b>t</b>: %{customdata[0]:.1f} usec<br>
-    <b>tick</b>: %{customdata[1]:.0f}<br>
-    <b>U</b>: %{customdata[2]:.0f}<br>
-    <b>V</b>: %{customdata[3]:.0f}<br>
-    <b>Y</b>: %{customdata[4]:.0f}<br>
-    """
 
     ntrueparts = eventTree.nTrueSimParts
-    
-    # for itype,ev_container in enumerate([kpshower,kptrack,kpcosmic,kpnu]):
-    #     nkpts = ev_container.size()
-    #     hitpos = np.zeros( (nkpts,3) )
-    #     customdata = np.zeros( (nkpts,7) ) 
-    #     for ipt in range(nkpts):
-    #         kp = ev_container.at(ipt)
-    #         for v in range(3):
-    #             hitpos[ipt,v] = kp.max_pt_v.at(v)
-    #         x = kp.max_pt_v.at(v)
-    #         tick = 3200 + x/cm_per_tick
-    #         t = x/cm_per_tick*0.5
-    #         customdata[ipt,0] = t
-    #         customdata[ipt,1] = tick
-    #         for p in range(3):
-    #             customdata[ipt,2+p] = larutil.Geometry.GetME().WireCoordinate( kp.max_pt_v, p )
-    #         customdata[ipt,6] = kp._cluster_type
-    #         customdata[ipt,5] = kp.max_score
-                                
-    #     trace = {
-    #         "type":"scatter3d",
-    #         "x": hitpos[:,0],
-    #         "y": hitpos[:,1],
-    #         "z": hitpos[:,2],
-    #         "mode":"markers",
-    #         "name":names[itype],
-    #         "hovertemplate":hovertemplate,
-    #         "customdata":customdata,
-    #         "marker":{"color":colors[itype],"size":sizes[itype],"opacity":0.5},
-    #     }
-    #     traces.append(trace)
 
+    # line segment plots for each true particle
+    plots = []
+    
+    for ipart in range(ntrueparts):
+        px = eventTree.trueSimPartPx[ipart]
+        py = eventTree.trueSimPartPy[ipart]
+        pz = eventTree.trueSimPartPz[ipart]
+        p2 = px*px + py*py + pz*pz
+        pnorm = sqrt(p2)
+        E  = eventTree.trueSimPartE[ipart]
+        m = sqrt(max(E*E-p2,0.0))
+        KE = E-m
+        pdg = eventTree.trueSimPartPDG[ipart]
+        tid = abs(eventTree.trueSimPartTID[ipart])
+        mid = abs(eventTree.trueSimPartMID[ipart])
+        abspdg = abs(pdg)
+        process = eventTree.trueSimPartProcess[ipart]
+        if process==0:
+            sprocess="primary"
+        elif process==1:
+            sprocess="from-decay"
+        else:
+            sprocess="other"
+        contained = "contained"
+        if eventTree.trueSimPartContained[ipart]==0:
+            contained = "uncontained"
+
+        if abspdg in [13,211]:
+            cmrange = __t2range_util.get_range_muon( KE )
+        elif abspdg in [11,22]:
+            cmrange = 20.0
+        else:
+            cmrange = __t2range_util.get_range_proton( KE )
+        #print(" truesimpart[",ipart,"] tid=",tid," pdg=",pdg," E=",E," p=",pnorm," m=",m," KE=",KE," cmrange=",cmrange)
+
+
+        dirx = px/pnorm
+        diry = py/pnorm
+        dirz = pz/pnorm
+
+        segpts = np.zeros( (2,3) )
+        if pdg != 22:
+            segpts[0,0] = eventTree.trueSimPartX[ipart]
+            segpts[0,1] = eventTree.trueSimPartY[ipart]
+            segpts[0,2] = eventTree.trueSimPartZ[ipart] # add offset for visibility?
+        else:
+            segpts[0,0] = eventTree.trueSimPartEDepX[ipart]
+            segpts[0,1] = eventTree.trueSimPartEDepY[ipart]
+            segpts[0,2] = eventTree.trueSimPartEDepZ[ipart] # add offset for visibility?
             
-    return traces
+        segpts[1,0] = segpts[0,0] + cmrange*dirx
+        segpts[1,1] = segpts[0,1] + cmrange*diry
+        segpts[1,2] = segpts[0,2] + cmrange*dirz
+
+        rcolor = np.random.randint(0,255,3)
+        srgb='rgba(%d,%d,%d,1.0)'%(rcolor[0],rcolor[1],rcolor[2])
+
+        hovertext=f"""
+<b>TID</b>: {tid}<br>
+<b>PDG</b>: {pdg}<br>
+<b>MID</b>: {mid}<br>
+<b>4-mom MeV</b>: {E:.1f} ({px:.1f},{py:.1f},{pz:.1f})<br>
+<b>process</b>: {sprocess}<br>
+<b>{contained}</b> <br>
+<b>start: ({segpts[0,0]:.1f}, {segpts[0,1]:.1f}, {segpts[0,2]:.1f})<br>
+"""
+        # if photon, maybe write origin point and MeV deposited point.
+        
+
+        trace = {
+            "type":"scatter3d",
+            "x": segpts[:,0],
+            "y": segpts[:,1],
+            "z": segpts[:,2],
+            "hovertext":hovertext,
+            "mode":"lines",
+            "name":f'tid[{tid}]\n pdg[{pdg}]',
+            "line":{"color":srgb,"width":3}
+        }
+
+        plots.append(trace)
+            
+    return plots
 
 register_det3d_plotter("ntupletruth",are_products_present,make_plot_option_widgets,make_traces)
 

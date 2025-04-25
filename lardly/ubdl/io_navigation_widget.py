@@ -83,6 +83,7 @@ def set_ionav_recotree(recotree):
 def set_ionav_eventTree(evTree):
     global _ionav_eventTree
     _ionav_eventTree = evTree
+    print("set _ionav_eventTree: ",_ionav_eventTree)
 
 def get_ionav_recotree():
     global _ionav_recotree
@@ -115,6 +116,7 @@ def register_ionavigation_callbacks(app):
         global _ionav_iomanager
         global _ionav_storageman
         global _ionav_recotree
+        global _ionav_eventTree
         global _ionav_available_trees_list
         global _the_core_tree
         global _the_core_treetype
@@ -165,7 +167,7 @@ def register_ionavigation_callbacks(app):
                     _ionav_available_trees_list.append(tree_name)
                 if 'EventTree' in key:
                     eventTree.AddFile(filename)
-                    _ionav_available_trees_list.append(key)
+                    _ionav_available_trees_list.append("EventTree")
                 #print(key.GetName())
                 elif "_tree" in key:
                     tree_name = key.strip().split()[1]
@@ -210,9 +212,6 @@ def register_ionavigation_callbacks(app):
                 _the_core_nentries = tree_nentries
                 nentries = tree_nentries
 
-        #if nentries_dict['reco']>0:
-        #    if  nentries!=nentries_dict['reco']:
-        #        print("WARNING: number of reco tree entries and larcv entries do not match. Expect errors in alignment.")
         if nentries_dict['reco']>0:
             set_ionav_recotree( recoTree )
         else:
@@ -222,6 +221,12 @@ def register_ionavigation_callbacks(app):
             set_ionav_eventTree( eventTree )
         else:
             set_ionav_eventTree( None )
+
+        if nentries_dict['larcv']==0:
+            set_ionav_iomanager( None )
+
+        if nentries_dict['larlite']==0:
+            set_ionav_storageman( None )
 
         # with the list of trees set. we want to pass available plotters.
         wire_plane_trees = []
@@ -251,7 +256,7 @@ def register_ionavigation_callbacks(app):
 
         global _ionav_iomanager
         global _ionav_recotree
-        global _ionac_eventTree
+        global _ionav_eventTree
         global _ionav_storageman
         global _the_core_tree
 

@@ -69,7 +69,7 @@ class BasePlotter(abc.ABC):
             List of plotly trace dictionaries
         """
         pass
-    
+
     def initialize_options(self) -> None:
         """
         Initialize plotter options in the state manager
@@ -78,7 +78,7 @@ class BasePlotter(abc.ABC):
         default values for any options the plotter uses.
         """
         pass
-    
+        
     def get_option_value(self, option_name: str, default: Any = None) -> Any:
         """
         Get the current value of an option from the state manager
@@ -90,18 +90,23 @@ class BasePlotter(abc.ABC):
         Returns:
             Current value of the option
         """
-        return state_manager.get_state('plotters', self.name, 'options', option_name, default=default)
+        from lardly.ubdl.core.state import state_manager
+        return state_manager.get_state('plotters', 'options', self.name, option_name, default=default)
     
     def set_option_value(self, option_name: str, value: Any) -> None:
         """
-        Set an option value in the state manager
+        Get the current value of an option from the state manager
         
         Args:
             option_name: Name of the option
-            value: New value for the option
+            default: Default value if option not set
+            
+        Returns:
+            Current value of the option
         """
-        state_manager.set_state(value, 'plotters', self.name, 'options', option_name)
-    
+        from lardly.ubdl.core.state import state_manager
+        state_manager.set_state(value, 'plotters', 'options', self.name, option_name)
+       
     def log_info(self, message: str) -> None:
         """
         Log an info message for this plotter
@@ -119,3 +124,25 @@ class BasePlotter(abc.ABC):
             message: Message to log
         """
         logger.error(f"[{self.name}] {message}")
+
+    def register_callbacks(self, app):
+        """
+        Register callbacks specific to this plotter
+        
+        This method should be overridden by plotters that need specific callbacks
+        for their options widgets.
+        
+        Args:
+            app: Dash application
+        """
+        pass
+    
+    def get_option_component_ids(self):
+        """
+        Get component IDs used by this plotter
+        
+        Returns:
+            List of component IDs used in this plotter's option widgets
+        """
+        return []
+

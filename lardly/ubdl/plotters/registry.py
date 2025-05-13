@@ -105,6 +105,20 @@ class PlotterRegistry:
         
         return all_traces
 
+    def register_callbacks(self, app):
+        """
+        Register callbacks for all plotters
+        
+        Args:
+            app: Dash application
+        """
+        for plotter in self._plotters.values():
+            try:
+                plotter.register_callbacks(app)
+            except Exception as e:
+                logger.error(f"Error registering callbacks for plotter '{plotter.name}': {e}")
+
+
 # Create a global registry instance
 registry = PlotterRegistry()
 
@@ -116,6 +130,10 @@ def register_plotter(plotter: BasePlotter) -> None:
         plotter: Plotter instance to register
     """
     registry.register(plotter)
+
+def register_callbacks(app):
+    """Register callbacks for all plotters"""
+    registry.register_callbacks(app)
 
 def get_applicable_plotters(tree_keys: List[str]) -> List[Tuple[str, str]]:
     """

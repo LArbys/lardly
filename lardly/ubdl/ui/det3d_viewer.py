@@ -61,13 +61,10 @@ def make_default_plot():
     return go.Figure(data=xtraces, layout=get_default_det3d_layout())
 
 def make_det3d_viewer():
-    """
-    Create the detector 3D viewer component
-    
-    Returns:
-        Dash component for the detector 3D viewer
-    """
+    """Create the detector 3D viewer component"""
     return html.Div([
+        html.Div(id='det3d-hidden-output', style={'display': 'none'}),  # Hidden div for callbacks
+        
         html.H3('Detector Viewer'),
         html.Label('Plot Menu'),
         dcc.Checklist(
@@ -88,82 +85,63 @@ def make_det3d_viewer():
     ], className="graph__container")
 
 def register_det3d_callbacks(app):
-    """
-    Register callbacks for the detector 3D viewer
+    """Register callbacks for the detector 3D viewer"""
     
-    Args:
-        app: Dash application
-    """
+    # Update plot options when selected plotters change
     @app.callback(
         Output('det3d-plot-options', 'children'),
         [Input('det3d-viewer-checklist-plotchoices', 'value')]
     )
     def update_plot_options(selected_plots):
-        """
-        Update the plot options based on selected plotters
-        
-        Args:
-            selected_plots: List of selected plotter names
-            
-        Returns:
-            List of Dash components for plot options
-        """
+        """Update plot options based on selected plotters"""
         if not selected_plots:
             return [html.Hr(), html.Label('Plot options'), html.Hr()]
         
         all_option_widgets = [html.Hr(), html.Label('Plot options'), html.Hr()]
         
+        from lardly.ubdl.plotters.registry import registry
+        
         for plot_name in selected_plots:
             plotter = registry.get_plotter(plot_name)
             if plotter:
-                all_option_widgets.extend([
-                    html.Div(
-                        plotter.make_option_widgets(),
-                        id=f'{plot_name}-options',
-                        style={'margin': '10px', 'padding': '10px', 'border': '1px solid #ddd'}
-                    ),
-                    html.Hr()
-                ])
+                # Get option widgets from the plotter
+                plotter_widgets = plotter.make_option_widgets()
+                if plotter_widgets:
+                    all_option_widgets.extend([
+                        html.Div(
+                            plotter_widgets,
+                            id={'type': 'plotter-options-container', 'name': plot_name},
+                            style={'margin': '10px', 'padding': '10px', 'border': '1px solid #ddd'}
+                        ),
+                        html.Hr()
+                    ])
         
         return all_option_widgets
     
+    # Run active plotters and update the 3D figure
     @app.callback(
         [Output('det3d', 'figure')],
         [Input('button-load-det3d-fig', 'n_clicks')],
-        [State('det3d-viewer-checklist-plotchoices', 'value')] +
-        # Add any other state dependencies for plotter options
-        [State('reconu-vertex-selector', 'value'),
-         State('reconu-display-options', 'value')]
+        [State('det3d-viewer-checklist-plotchoices', 'value')]
     )
-    def run_active_det3d_plotters(n_clicks, selected_plots, reconu_vertex=None, reconu_display=None):
-        """
-        Run active plotters and update the 3D figure
-        
-        Args:
-            n_clicks: Number of button clicks
-            selected_plots: List of selected plotter names
-            reconu_vertex: Selected vertex for RecoNu plotter
-            reconu_display: Display options for RecoNu plotter
-            
-        Returns:
-            Updated Plotly figure
-        """
-        if not selected_plots:
+    def run_active_det3d_plotters(n_clicks, selected_plots):
+        """Run active plotters and update the 3D figure"""
+        if n_clicks is None or not selected_plots:
             return [make_default_plot()]
         
-        # Collect plotter options
-        options = {}
-        if 'RecoNu' in selected_plots:
-            options['RecoNu'] = {
-                'selected_vertex': reconu_vertex,
-                'display_options': reconu_display
-            }
+        # Get options for all selected plotters from the state store
+        from lardly.ubdl.core.state import state_manager
+        all_options = state_manager.get_state('plotters', 'options', default={})
         
-        # Get tree dictionary
-        from lardly.io.io_manager import get_tree_dict
+        # Get the tree dictionary
+        from lardly.ubdl.io.io_manager import get_tree_dict
         tree_dict = get_tree_dict()
         
+        # Create options dictionary for the selected plotters
+        options = {name: all_options.get(name, {}) for name in selected_plots}
+        
         # Get traces from plotters
+        from lardly.ubdl.plotters.registry import registry
         traces = registry.make_traces(selected_plots, tree_dict, options)
         
         # Create figure
@@ -178,47 +156,3 @@ def register_det3d_callbacks(app):
             fig.add_trace(trace)
             
         return [fig]
-    
-    # Add callback to update vertex selector options when data is loaded
-    @app.callback(
-        Output('reconu-vertex-selector', 'options'),
-        [Input('io-nav-button-load-entry', 'n_clicks')],
-        [State('io-nav-entry-input', 'value')]
-    )
-    def update_vertex_dropdown(n_clicks, entry_value):
-        """
-        Update vertex dropdown options when data is loaded
-        
-        Args:
-            n_clicks: Number of button clicks
-            entry_value: Entry input value
-            
-        Returns:
-            Updated dropdown options
-        """
-        if n_clicks is None:
-            return [{'label': 'All Vertices', 'value': 'all'}]
-        
-        try:
-            # Get the loaded RecoTree from state
-            from lardly.io.io_manager import get_tree_dict
-            tree_dict = get_tree_dict()
-            recoTree = tree_dict.get('recoTree')
-            
-            if recoTree is None:
-                return [{'label': 'All Vertices', 'value': 'all'}]
-            
-            # Get the number of vertices
-            nvertices = recoTree.nuvetoed_v.size()
-            options = [{'label': 'All Vertices', 'value': 'all'}]
-            
-            # Add an option for each vertex
-            for i in range(nvertices):
-                options.append({'label': f'Vertex {i}', 'value': str(i)})
-            
-            return options
-        except Exception as e:
-            print(f"Error updating vertex dropdown: {e}")
-            return [{'label': 'All Vertices', 'value': 'all'}]
-    
-    # Add similar callbacks for other plotter options

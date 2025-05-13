@@ -81,6 +81,69 @@ class RecoNuPlotter(BasePlotter):
             ])
         ]
     
+    def get_option_component_ids(self):
+        """Get component IDs used by this plotter"""
+        return ['reconu-vertex-selector', 'reconu-display-options']
+
+    def register_callbacks(self, app):
+        """Register callbacks specific to this plotter"""
+        # Update vertex dropdown options when data is loaded
+        @app.callback(
+            Output('reconu-vertex-selector', 'options'),
+            [Input('io-nav-button-load-entry', 'n_clicks')],
+            [State('io-nav-entry-input', 'value')]
+        )
+        def update_vertex_dropdown(n_clicks, entry_value):
+            self.log_info("calling update_vertex_dropdown")
+            
+            if n_clicks is None:
+                return [{'label': 'All Vertices', 'value': 'all'}]
+            
+            try:
+                from lardly.ubdl.io.io_manager import get_tree_dict
+                tree_dict = get_tree_dict()
+                recoTree = tree_dict.get('recoTree')
+                
+                if recoTree is None:
+                    return [{'label': 'All Vertices', 'value': 'all'}]
+                
+                nvertices = recoTree.nuvetoed_v.size()
+                options = [{'label': 'All Vertices', 'value': 'all'}]
+                
+                for i in range(nvertices):
+                    options.append({'label': f'Vertex {i}', 'value': str(i)})
+                
+                return options
+            except Exception as e:
+                print(f"Error updating vertex dropdown: {e}")
+                return [{'label': 'All Vertices', 'value': 'all'}]
+        
+        # Store selected vertex in state when it changes
+        @app.callback(
+            Output('det3d-hidden-output', 'children'),  # Dummy output
+            [Input('reconu-vertex-selector', 'value')]
+        )
+        def store_selected_vertex(value):
+            if value is not None:
+                self.set_option_value('selected_vertex', value)
+            return None
+        
+        # Store display options in state when they change
+        @app.callback(
+            Output('det3d-hidden-output', 'children', allow_duplicate=True),  # Dummy output
+            [Input('reconu-display-options', 'value')]
+        )
+        def store_display_options(value):
+            if value is not None:
+                display_options = {
+                    'show_tracks': 'tracks' in value,
+                    'show_showers': 'showers' in value,
+                    'show_vertices': 'vertices' in value
+                }
+                for k, v in display_options.items():
+                    self.set_option_value(k, v)
+            return None
+
     def make_traces(self, tree_dict: Dict[str, Any], options: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
         Create traces for this plotter

@@ -106,13 +106,8 @@ def create_layout() -> html.Div:
         }),
     ])
 
-def register_callbacks(app: dash.Dash) -> None:
-    """
-    Register all callbacks for the application
-    
-    Args:
-        app: Dash application
-    """
+def register_callbacks(app):
+    """Register all callbacks for the application"""
     # Register IO navigation callbacks
     register_io_navigation_callbacks(app)
     
@@ -121,17 +116,17 @@ def register_callbacks(app: dash.Dash) -> None:
     
     # Register det3d callbacks
     register_det3d_callbacks(app)
-
-def create_app() -> dash.Dash:
-    """
-    Create and configure the Dash application
     
-    Returns:
-        Configured Dash application
-    """
+    # Register plotter-specific callbacks
+    from lardly.ubdl.plotters.registry import register_callbacks as register_plotter_callbacks
+    register_plotter_callbacks(app)
+
+def create_app():
+    """Create and configure the Dash application"""
     app = dash.Dash(
         __name__,
         meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
+        suppress_callback_exceptions=True,  # Allow for dynamic callbacks
     )
     
     # Initialize plotters

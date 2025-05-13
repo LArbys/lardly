@@ -110,14 +110,19 @@ def make_traces( tree_dict, option_widget ):
         vtxinfo[ivtx,5] = nuvtx.col_v[0] # u-plane wire
         vtxinfo[ivtx,6] = nuvtx.col_v[1] # v-plane wire
         vtxinfo[ivtx,7] = nuvtx.col_v[2] # y-plane wire
-        nprim_tracks = 0.0
-        nprim_showers = 0.0
+        nprim_tracks = 0
+        nprim_showers = 0
         for itrack in range(nuvtx.track_v.size()):
             if itrack < nuvtx.track_isSecondary_v.size() and nuvtx.track_isSecondary_v.at(itrack)==0:
-                nprim_tracks += 1.0
+                nprim_tracks += 1
+            else if nuvtx.track_isSecondary_v.size()==0:
+                nprim_tracks += 1
         for ishower in range(nuvtx.shower_v.size()):
             if ishower < nuvtx.shower_isSecondary_v.size() and nuvtx.shower_isSecondary_v.at(ishower)==0:
-                nprim_showers += 1.0        
+                nprim_showers += 1.0
+            else if nuvtx.shower_isSecondary_v.size()==0:
+                nprim_showers += 1
+                
         vtxinfo[ivtx,8] = nprim_tracks
         vtxinfo[ivtx,9] = nprim_showers
         vtxinfo[ivtx,10] = nuvtx.netScore

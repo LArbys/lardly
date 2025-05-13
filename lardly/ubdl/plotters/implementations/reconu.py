@@ -122,11 +122,11 @@ class RecoNuPlotter(BasePlotter):
         # arrays for nu-vertex plot
         # [0-3] x, y, z, tick,
         # [4-7] t, U, V, Y,
-        # [8-9] n_primary tracks, n_primary showers,
-        # [10-13] max-kp-score, nu-score, origin kptype, ivtx
-        # [14-18] (optional) unreco fracion: U pix, V pix, Y pix, all spacepoints
+        # [8-11] n_primary tracks, n_primary showers, n second track, n second showers
+        # [12-15] max-kp-score, nu-score, origin kptype, ivtx
+        # [16-19] (optional) unreco fracion: U pix, V pix, Y pix, all spacepoints
         if nvertices > 0:
-            vtxinfo = np.zeros((nvertices, 18))
+            vtxinfo = np.zeros((nvertices, 20))
         else:
             vtxinfo = None
             
@@ -169,13 +169,16 @@ class RecoNuPlotter(BasePlotter):
                             ptpos[i, v] = shower.at(i)[v]
                     ic = np.random.randint(0, 255, 3)
                     rcolor = f'rgba({ic[0]},{ic[1]},{ic[2]},1.0)'
+                    primorsec = "1"
+                    if ishower < nuvtx.shower_isSecondary_v.size() and nuvtx.shower_isSecondary_v.at(ishower)==1:
+                        primorsec="2"
                     shower_trace = {
                         "type": "scatter3d",
                         "x": ptpos[:, 0],
                         "y": ptpos[:, 1],
                         "z": ptpos[:, 2],
                         "mode": "markers",
-                        "name": f"Nu[{ivtx}]-S[{ishower}]",
+                        "name": f"Nu[{ivtx}]:S{primorsec}[{ishower}]",
                         "marker": {"color": rcolor, "size": 1.0, "opacity": 0.5},
                     }
                     traces.append(shower_trace)
@@ -193,13 +196,16 @@ class RecoNuPlotter(BasePlotter):
                             ptpos[i, v] = trackhits.at(i)[v]
                     ic = np.random.randint(0, 255, 3)
                     rcolor = f'rgba({ic[0]},{ic[1]},{ic[2]},1.0)'
+                    primorsec = "1"
+                    if itrack < nuvtx.track_isSecondary_v.size() and nuvtx.track_isSecondary_v.at(itrack)==1:
+                        primorsec="2"
                     trackhit_trace = {
                         "type": "scatter3d",
                         "x": ptpos[:, 0],
                         "y": ptpos[:, 1],
                         "z": ptpos[:, 2],
                         "mode": "markers",
-                        "name": f"Nu[{ivtx}]-T[{itrack}]",
+                        "name": f"Nu[{ivtx}]:T{primorsec}[{itrack}]",
                         "marker": {"color": rcolor, "size": 1.0, "opacity": 0.5},
                     }
                     traces.append(trackhit_trace)
@@ -217,29 +223,39 @@ class RecoNuPlotter(BasePlotter):
             # Count primary tracks and showers
             nprim_tracks = 0
             nprim_showers = 0
+            nsec_tracks  = 0
+            nsec_showers = 0
             for itrack in range(nuvtx.track_v.size()):
-                if itrack < nuvtx.track_isSecondary_v.size() and nuvtx.track_isSecondary_v.at(itrack) == 0:
-                    nprim_tracks += 1
+                if itrack < nuvtx.track_isSecondary_v.size():
+                    if nuvtx.track_isSecondary_v.at(itrack) == 0:
+                        nprim_tracks += 1
+                    else:
+                        nsec_tracks += 1
                 elif nuvtx.track_isSecondary_v.size() == 0:
                     nprim_tracks += 1
                     
             for ishower in range(nuvtx.shower_v.size()):
-                if ishower < nuvtx.shower_isSecondary_v.size() and nuvtx.shower_isSecondary_v.at(ishower) == 0:
-                    nprim_showers += 1
+                if ishower < nuvtx.shower_isSecondary_v.size():
+                    if nuvtx.shower_isSecondary_v.at(ishower) == 0:
+                        nprim_showers += 1
+                    else:
+                        nsec_showers += 1
                 elif nuvtx.shower_isSecondary_v.size() == 0:
                     nprim_showers += 1
                     
             vtxinfo[ivtx, 8] = nprim_tracks
             vtxinfo[ivtx, 9] = nprim_showers
-            vtxinfo[ivtx, 10] = nuvtx.netScore
-            vtxinfo[ivtx, 11] = nuvtx.netNuScore
-            vtxinfo[ivtx, 12] = nuvtx.keypoint_type
-            vtxinfo[ivtx, 13] = ivtx
+            vtxinfo[ivtx, 10] = nsec_tracks
+            vtxinfo[ivtx, 11] = nsec_showers
+            vtxinfo[ivtx, 12] = nuvtx.netScore
+            vtxinfo[ivtx, 13] = nuvtx.netNuScore
+            vtxinfo[ivtx, 14] = nuvtx.keypoint_type
+            vtxinfo[ivtx, 15] = ivtx
             
             if nusel is not None:
                 try:
                     for j in range(nusel.unreco_fraction_v.size()):
-                        vtxinfo[ivtx, 14 + j] = nusel.unreco_fraction_v[j]
+                        vtxinfo[ivtx, 16 + j] = nusel.unreco_fraction_v[j]
                 except:
                     pass
 
@@ -249,7 +265,7 @@ class RecoNuPlotter(BasePlotter):
             <b>x</b>: %{x:.1f}<br>
             <b>y</b>: %{y:.1f}<br>
             <b>z</b>: %{z:.1f}<br>
-            <b>NuCand</b>: %{customdata[10]}<br>
+            <b>[NuCand %{customdata[12]}]</b><br>
             <b>t</b>: %{customdata[0]:.1f} usec<br>
             <b>tick</b>: %{customdata[1]:.0f}<br>
             <b>U</b>: %{customdata[2]:.0f}<br>
@@ -257,14 +273,16 @@ class RecoNuPlotter(BasePlotter):
             <b>Y</b>: %{customdata[4]:.0f}<br>
             <b>nprim tracks</b>: %{customdata[5]:.0f}<br>
             <b>nprim showers</b>: %{customdata[6]:.0f}<br>
-            <b>max-kp score</b>: %{customdata[7]:.2f}<br>
-            <b>nu-kp score</b>: %{customdata[8]:.2f}<br>
-            <b>kp type</b>: %{customdata[9]:.0f}<br>
+            <b>nsec tracks</b>: %{customdata[7]:.0f}<br>
+            <b>nsec showers</b>: %{customdata[8]:.0f}<br>
+            <b>max-kp score</b>: %{customdata[9]:.2f}<br>
+            <b>nu-kp score</b>: %{customdata[10]:.2f}<br>
+            <b>kp type</b>: %{customdata[11]:.0f}<br>
             """
             
             if nvertices == nselvars:
                 this_template = "%s" % (nu_hover_template)
-                this_template += "<b>unreco frac</b> %{customdata[11]:.2f} %{customdata[12]:.2f} %{customdata[13]:.2f} %{customdata[14]:.2f}<br>"
+                this_template += "<b>unreco frac</b> %{customdata[13]:.2f} %{customdata[14]:.2f} %{customdata[15]:.2f} %{customdata[16]:.2f}<br>"
             else:
                 this_template = nu_hover_template
             

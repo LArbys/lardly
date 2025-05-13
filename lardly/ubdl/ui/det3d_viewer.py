@@ -89,8 +89,9 @@ def register_det3d_callbacks(app):
     
     # Update plot options when selected plotters change
     @app.callback(
-        Output('det3d-plot-options', 'children'),
-        [Input('det3d-viewer-checklist-plotchoices', 'value')]
+        Output('det3d-plot-options', 'children',allow_duplicate=True),
+        [Input('det3d-viewer-checklist-plotchoices', 'value')],
+        prevent_initial_call=True
     )
     def update_plot_options(selected_plots):
         """Update plot options based on selected plotters"""
@@ -120,9 +121,10 @@ def register_det3d_callbacks(app):
     
     # Run active plotters and update the 3D figure
     @app.callback(
-        [Output('det3d', 'figure')],
+        [Output('det3d', 'figure',allow_duplicate=True)],
         [Input('button-load-det3d-fig', 'n_clicks')],
-        [State('det3d-viewer-checklist-plotchoices', 'value')]
+        [State('det3d-viewer-checklist-plotchoices', 'value')],
+        prevent_initial_call=True
     )
     def run_active_det3d_plotters(n_clicks, selected_plots):
         """Run active plotters and update the 3D figure"""

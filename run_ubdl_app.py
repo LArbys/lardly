@@ -37,9 +37,16 @@ def main():
                         help='Tick direction for data processing')
     parser.add_argument('--entry', type=int, default=None,
                         help='Entry number to load on startup')
+    parser.add_argument('--log-level', 
+                   choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                   default='INFO', 
+                   help='Set the logging level')
     
     args = parser.parse_args()
     
+    # set the log level
+    logging.getLogger().setLevel(getattr(logging, args.log_level))
+
     # Add the project root to the Python path if needed
     project_root = Path(__file__).parent.parent
     if str(project_root) not in sys.path:

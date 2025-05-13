@@ -357,7 +357,7 @@ class RecoNuPlotter(BasePlotter):
         
         # Store selected vertex in state when it changes
         @app.callback(
-            Output('det3d-hidden-output', 'children'),
+            Output('det3d-hidden-output', 'children',allow_duplicate=True),
             [Input('reconu-vertex-selector', 'value')],
             prevent_initial_call=True
         )

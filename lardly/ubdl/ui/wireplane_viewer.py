@@ -203,7 +203,8 @@ def register_dropdown_callback(app: dash.Dash) -> None:
          State('wireplane-colorscale-dropdown', 'value'),
          State('wireplane-min-value', 'value'),
          State('wireplane-max-value', 'value'),
-         State('wireplane-reverse-ticks', 'value')]
+         State('wireplane-reverse-ticks', 'value')],
+         prevent_initial_call=True
     )
     def update_wireplane_viewer(
         tree_value, n_clicks, fig_plane0, fig_plane1, fig_plane2, 

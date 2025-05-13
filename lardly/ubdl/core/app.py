@@ -18,7 +18,6 @@ from lardly.ubdl.ui.det3d_viewer import make_det3d_viewer, register_det3d_callba
 from lardly.ubdl.io.io_manager import io_manager
 
 # Import plotter implementations
-from lardly.ubdl.plotters.implementations.reconu import RecoNuPlotter
 from lardly.ubdl.plotters.registry import register_plotter
 
 # Import wireplane viewer module
@@ -29,8 +28,16 @@ def init_plotters() -> None:
     Initialize and register all plotters
     """
     # Register all plotters
+
+    from lardly.ubdl.plotters.implementations.reconu import RecoNuPlotter
     register_plotter(RecoNuPlotter())
     
+    from lardly.ubdl.plotters.implementations.mctruth import MCTruthPlotter
+    register_plotter(MCTruthPlotter())
+
+    from lardly.ubdl.plotters.implementations.crt import CRTPlotter
+    register_plotter(CRTPlotter())
+
     # Add more plotters here as needed
     # register_plotter(CRTHitPlotter())
     # register_plotter(MCTruthPlotter())

@@ -21,11 +21,14 @@ import lardly.ubdl.det3d_truth_plot
 import lardly.ubdl.det3d_crt_plot
 import lardly.ubdl.det3d_intimeflash_plot
 import lardly.ubdl.det3d_larmatchhits_plot
+import lardly.ubdl.det3d_lmshowerscore_plot
 import lardly.ubdl.det3d_cosmictracks_plot
 import lardly.ubdl.det3d_keypoints_plot
 import lardly.ubdl.det3d_reconu_plot
 import lardly.ubdl.det3d_ntupletruth_plot
 import lardly.ubdl.det3d_ntuplereco_plot
+import lardly.ubdl.det3d_nuinputclustersbycluster_plot
+import lardly.ubdl.det3d_nuinputclustersbyssnet_plot
 
 app = dash.Dash(
     __name__,

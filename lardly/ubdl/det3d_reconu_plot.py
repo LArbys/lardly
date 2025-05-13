@@ -24,22 +24,35 @@ def make_plot_option_widgets( keys ):
     """
     return [html.Label('RecoNu: no options')]
 
-def make_traces( tree_dict ):
+def make_traces( tree_dict, option_widget ):
 
     recoTree = tree_dict['recoTree']
     
     nvertices = recoTree.nuvetoed_v.size()
-    print("[det3d_reconu_plot.py] num vertices: ",nvertices)
+    nselvars  = recoTree.nu_sel_v.size();
+    print("[det3d_reconu_plot.py] num vertices: ",nvertices, " num selection var classes: ",nselvars)
     traces = []
 
     # arrays for nu-vertex plot
-    # x, y, z, tick, t, U, V, Y, n_primary tracks, n_primary showers, max-kp-score, nu-score, origin kptype
+    # [0-3] x, y, z, tick,
+    # [4-7] t, U, V, Y,
+    # [8-9] n_primary tracks, n_primary showers,
+    # [10-13] max-kp-score, nu-score, origin kptype, ivtx
+    # [14-18] (optional) unreco fracion: U pix, V pix, Y pix, all spacepoints
     if nvertices>0:
-        vtxinfo = np.zeros( (nvertices, 14 ) )
+        vtxinfo = np.zeros( (nvertices, 18 ) )
     else:
         vtxinfo = None
     for ivtx in range(nvertices):
         nuvtx = recoTree.nuvetoed_v.at(ivtx)
+        if nvertices==nselvars:
+            nusel = recoTree.nu_sel_v.at(ivtx)
+        else:
+            nusel = None
+            
+        print("RecoNu Vertex[",ivtx,"]")
+        print("  ntracks=",nuvtx.track_v.size())
+        print("  nshowers=",nuvtx.shower_v.size())
         
         nshowers = nuvtx.shower_v.size()
         for ishower in range(nshowers):
@@ -100,21 +113,29 @@ def make_traces( tree_dict ):
         nprim_tracks = 0.0
         nprim_showers = 0.0
         for itrack in range(nuvtx.track_v.size()):
-            if nuvtx.track_isSecondary_v.at(itrack)==0:
+            if itrack < nuvtx.track_isSecondary_v.size() and nuvtx.track_isSecondary_v.at(itrack)==0:
                 nprim_tracks += 1.0
         for ishower in range(nuvtx.shower_v.size()):
-            if nuvtx.shower_isSecondary_v.at(ishower)==0:
+            if ishower < nuvtx.shower_isSecondary_v.size() and nuvtx.shower_isSecondary_v.at(ishower)==0:
                 nprim_showers += 1.0        
         vtxinfo[ivtx,8] = nprim_tracks
         vtxinfo[ivtx,9] = nprim_showers
         vtxinfo[ivtx,10] = nuvtx.netScore
         vtxinfo[ivtx,11] = nuvtx.netNuScore
         vtxinfo[ivtx,12] = nuvtx.keypoint_type
+        vtxinfo[ivtx,13] = ivtx
+        if nusel is not None:
+            try:
+                for j in range(nusel.unreco_fraction_v.size()):
+                    vtxinfo[ivtx,14+j] = nusel.unreco_fraction_v[j]
+            except:
+                pass
 
     nu_hover_template = """
     <b>x</b>: %{x:.1f}<br>
     <b>y</b>: %{y:.1f}<br>
     <b>z</b>: %{z:.1f}<br>
+    <b>NuCand</b>: %{customdata[10]}<br>
     <b>t</b>: %{customdata[0]:.1f} usec<br>
     <b>tick</b>: %{customdata[1]:.0f}<br>
     <b>U</b>: %{customdata[2]:.0f}<br>
@@ -127,6 +148,13 @@ def make_traces( tree_dict ):
     <b>kp type</b>: %{customdata[9]:.0f}<br>
     """
     if nvertices>0:
+
+        if nvertices==nselvars:
+            this_template = "%s"%(nu_hover_template)
+            this_template += "<b>unreco frac</b> %{customdata[11]:.2f} %{customdata[12]:.2f} %{customdata[13]:.2f} %{customdata[14]:.2f}<br>"
+        else:
+            this_template = nu_hover_template
+        
         nu_trace = {
             "type":"scatter3d",
             "x": vtxinfo[:,0],
@@ -134,7 +162,7 @@ def make_traces( tree_dict ):
             "z": vtxinfo[:,2],
             "mode":"markers",
             "name":"recoNu",
-            "hovertemplate":nu_hover_template,
+            "hovertemplate":this_template,
             "customdata":vtxinfo[:,3:],
             "marker":{"color":'rgb(255,0,0)',"size":5,"opacity":0.3},
         }

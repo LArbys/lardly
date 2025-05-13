@@ -34,6 +34,8 @@ def make_traces( tree_dict ):
 
     ev_mctrack = iolarlite.get_data("mctrack","mcreco")
     ev_mcshower = iolarlite.get_data("mcshower","mcreco")
+    print("size of mctrack container: ",ev_mctrack.size())
+    print("size of mcshower container: ",ev_mcshower.size())
     track_traces = vis_mctrack.visualize_larlite_event_mctrack( ev_mctrack, do_sce_correction=True, no_offset=False )
     print("number of track_trackes: ",len(track_traces))
     print(track_traces)
@@ -45,8 +47,8 @@ def make_traces( tree_dict ):
     traces = []
     if len(track_traces)>0:
         traces += track_traces
-    #if len(shower_traces):
-    #    traces += shower_traces
+    if len(shower_traces):
+        traces += shower_traces
 
     # for showers use mcpg (if have larcv)
     # nnodes = mcpg.node_v.size()

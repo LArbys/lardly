@@ -112,11 +112,15 @@ class PlotterRegistry:
         Args:
             app: Dash application
         """
-        for plotter in self._plotters.values():
+        for name, plotter in self._plotters.items():
             try:
+                print(f"Registering callbacks for plotter: {name}")
                 plotter.register_callbacks(app)
+                print(f"Successfully registered callbacks for plotter: {name}")
             except Exception as e:
-                logger.error(f"Error registering callbacks for plotter '{plotter.name}': {e}")
+                print(f"Error registering callbacks for plotter '{name}': {e}")
+                import traceback
+                traceback.print_exc()
 
 
 # Create a global registry instance

@@ -82,7 +82,7 @@ class CRTPlotter(BasePlotter):
             logger.info(f"CRTPlotter not applicable: need at list one from {required_trees}")
             return False
         else:
-            logger.info(f"CRTPlotter found {len(self.found_trees)} trees: ",self.found_trees)
+            logger.info(f"CRTPlotter found {len(self.found_trees)} trees: {self.found_trees}")
         
         logger.info("CRTPlotter is applicable for the current data")
         return True

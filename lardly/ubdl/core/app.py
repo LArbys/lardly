@@ -44,6 +44,9 @@ def init_plotters() -> None:
     from lardly.ubdl.plotters.implementations.nuinputclusters import NuInputClustersPlotter
     register_plotter(NuInputClustersPlotter())
 
+    from lardly.ubdl.plotters.implementations.larflowhits import LArFlowHitsPlotter
+    register_plotter(LArFlowHitsPlotter())
+
     # Add more plotters here as needed
     # register_plotter(CRTHitPlotter())
     # register_plotter(MCTruthPlotter())

@@ -38,6 +38,12 @@ def init_plotters() -> None:
     from lardly.ubdl.plotters.implementations.crt import CRTPlotter
     register_plotter(CRTPlotter())
 
+    from lardly.ubdl.plotters.implementations.intimeflash import IntimeFlashPlotter
+    register_plotter(IntimeFlashPlotter())
+
+    from lardly.ubdl.plotters.implementations.nuinputclusters import NuInputClustersPlotter
+    register_plotter(NuInputClustersPlotter())
+
     # Add more plotters here as needed
     # register_plotter(CRTHitPlotter())
     # register_plotter(MCTruthPlotter())

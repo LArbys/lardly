@@ -179,6 +179,9 @@ def visualize_larlite_mctrack( mctrack, origin=None,
         if steps_np is None:
             return None
 
+    if steps_np.shape[0]==0:
+        return None
+
     trackvis = {
         "type":"scatter3d",
         "x":steps_np[:,0],

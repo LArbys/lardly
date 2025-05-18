@@ -205,6 +205,7 @@ class RecoNuPlotter(BasePlotter):
                     track = nuvtx.track_v.at(itrack)
                     trackhits = nuvtx.track_hitcluster_v.at(itrack)
                     npts = trackhits.size()
+                    track_start = track.LocationAtPoint(0)
                     ptpos = np.zeros((npts, 3))
                     for i in range(npts):
                         for v in range(3):
@@ -223,22 +224,7 @@ class RecoNuPlotter(BasePlotter):
                         "name": f"Nu[{ivtx}]:T{primorsec}[{itrack}]",
                         "marker": {"color": rcolor, "size": 1.0, "opacity": 0.5},
                     }
-
-                    track_dir = nuvtx.track_dir_v.at(itrack)
-                    track_start = track.LocationAtPoint(0)
-                    trunk_pos = np.zeros( (2,3) )
-                    for i in range(3):
-                        trunk_pos[0,i] = track_start[i]
-                        trunk_pos[1,i] = track_start[i] + 5.0*track_dir[i]
-                    trunk_trace = {
-                        "type": "scatter3d",
-                        "x": trunk_pos[:, 0],
-                        "y": trunk_pos[:, 1],
-                        "z": trunk_pos[:, 2],
-                        "mode": "lines",
-                        "name": f"Nu[{ivtx}]:T{primorsec}[{itrack}]",
-                        "line": {"color": rcolor, "width":3.0},
-                    }
+                    traces.append(trackhit_trace)
 
                     track_pts = np.zeros( (track.NumberTrajectoryPoints(),3))
                     for i in range( track_pts.shape[0] ):
@@ -253,10 +239,25 @@ class RecoNuPlotter(BasePlotter):
                         "name": f"Nu[{ivtx}]:T{primorsec}[{itrack}]",
                         "line": {"color": rcolor, "width":1.0},
                     }
-
-                    traces.append(trunk_trace)
-                    traces.append(trackhit_trace)
                     traces.append(trackline_trace)
+
+                    if itrack < nuvtx.track_dir_v.size():
+                        track_dir = nuvtx.track_dir_v.at(itrack)
+                        trunk_pos = np.zeros( (2,3) )
+                        for i in range(3):
+                            trunk_pos[0,i] = track_start[i]
+                            trunk_pos[1,i] = track_start[i] + 5.0*track_dir[i]
+                        trunk_trace = {
+                            "type": "scatter3d",
+                            "x": trunk_pos[:, 0],
+                            "y": trunk_pos[:, 1],
+                            "z": trunk_pos[:, 2],
+                            "mode": "lines",
+                            "name": f"Nu[{ivtx}]:T{primorsec}[{itrack}]",
+                            "line": {"color": rcolor, "width":3.0},
+                        }
+                        traces.append(trunk_trace)
+                    
 
             # Gather data for nu vertex hover text
             vtxinfo[ivtx, 0] = nuvtx.pos[0]

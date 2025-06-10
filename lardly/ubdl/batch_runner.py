@@ -196,7 +196,8 @@ class BatchRunner:
         if viewer_config.get('show_detector', True):
             # Add detector outline
             detector_outline = DetectorOutline()
-            detector_traces = detector_outline.getlines()
+            detector_color = viewer_config.get('detector_color', [100, 150, 200])  # Default light blue
+            detector_traces = detector_outline.getlines(color=tuple(detector_color))
             for trace in detector_traces:
                 trace['opacity'] = viewer_config.get('detector_opacity', 0.1)
                 fig.add_trace(trace)

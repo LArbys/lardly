@@ -87,6 +87,7 @@ plot_config:
     
     show_detector: true
     detector_opacity: 0.03
+    detector_color: [255, 200, 100]  # Light orange color
   
   viewer_2d:
     enabled: true

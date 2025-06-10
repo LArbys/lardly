@@ -32,3 +32,4 @@ plot_config:
       title: "MC Truth Visualization"
     show_detector: true
     detector_opacity: 0.05
+    detector_color: [200, 100, 100]  # Light red color

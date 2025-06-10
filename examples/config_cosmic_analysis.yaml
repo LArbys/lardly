@@ -66,3 +66,4 @@ plot_config:
     
     show_detector: true
     detector_opacity: 0.02
+    detector_color: [100, 200, 100]  # Light green color

@@ -14,7 +14,7 @@ source setenv.sh
 python run_ubdl_app.py --files [path/to/datafile.root] --port 8891
 
 # Run in batch mode with configuration file
-python run_ubdl_app.py --batch --plot-config examples/config_mctruth_only.yaml
+python run_ubdl_app.py --batch --plot-config example_ubdl_viewer_config.yaml
 
 # Run specific test viewers
 python test_dlmerged.py --input-file [dlmerged root file] -e 0 -p 8005

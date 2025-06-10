@@ -99,6 +99,7 @@ plot_config:
     # Detector outline settings
     show_detector: true
     detector_opacity: 0.1
+    detector_color: [100, 150, 200]  # RGB color values (0-255)
   
   # Wireplane viewer settings
   viewer_2d:

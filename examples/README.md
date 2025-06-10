@@ -7,7 +7,7 @@ This directory contains example configuration files for running Lardly in batch 
 To run Lardly in batch mode with a configuration file:
 
 ```bash
-python run_ubdl_app.py --batch --plot-config examples/config_mctruth_only.yaml
+python run_ubdl_app.py --batch --plot-config example_ubdl_viewer_config.yaml
 ```
 
 This will:
@@ -24,9 +24,9 @@ This will:
 - **`config_cosmic_analysis.yaml`** - Focus on cosmic ray muons and CRT data
 - **`config_full_reconstruction.yaml`** - Shows all available reconstruction products
 
-### Student Template
+### Main Template
 
-- **`../example_student_config.yaml`** - Template for students to customize
+- **`../example_ubdl_viewer_config.yaml`** - Main template configuration file
 
 ## Configuration Structure
 
@@ -55,12 +55,14 @@ Each configuration file has the following sections:
 3. Adjust camera position for different viewing angles
 4. Set `show_all_hits: false` for large events to improve performance
 5. Use meaningful output filenames that include the entry number
+6. Customize detector outline color with `detector_color: [R, G, B]` (RGB values 0-255)
+7. Adjust `detector_opacity` to make the outline more or less visible
 
 ## Example Workflow
 
 ```bash
 # 1. Copy and edit a configuration file
-cp examples/config_mctruth_only.yaml my_event_config.yaml
+cp example_ubdl_viewer_config.yaml my_event_config.yaml
 # Edit my_event_config.yaml with your file path and settings
 
 # 2. Run batch mode

@@ -1,4 +1,4 @@
-# Example Lardly Plot Configuration for Students
+# Example Lardly Plot Configuration
 # This configuration will generate a visualization of neutrino interactions
 
 plot_config:
@@ -80,7 +80,8 @@ plot_config:
       title: "Neutrino Event Visualization"
     
     show_detector: true
-    detector_opacity: 1.0
+    detector_opacity: 0.9
+    detector_color: [150, 200, 255]  # Light blue color (RGB 0-255)
   
   # 2D wireplane viewer settings
   viewer_2d:

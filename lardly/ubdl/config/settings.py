@@ -268,6 +268,7 @@ class Config:
         return {
             'show_detector': True,
             'detector_opacity': 0.1,
+            'detector_color': [100, 150, 200],  # Light blue RGB color
             'layout': {
                 'width': 1200,
                 'height': 800,

@@ -50,8 +50,10 @@ class IOManager:
             # Initialize IO managers
             if tick_direction == 'TickBackwards':
                 self._larcv_io = larcv.IOManager(larcv.IOManager.kREAD, "larcv", larcv.IOManager.kTickBackward)
+                logger.info("IOManager set to TickBackwards")
             else:
                 self._larcv_io = larcv.IOManager(larcv.IOManager.kREAD, "larcv", larcv.IOManager.kTickForward)
+                logger.info("IOManager set to TickForwards")
             
             self._larlite_io = larlite.storage_manager(larlite.storage_manager.kREAD)
             self._recoTree = rt.TChain("KPSRecoManagerTree")
@@ -89,7 +91,8 @@ class IOManager:
                 tfile.Close()
             
             # Initialize IO managers
-            self._larcv_io.reverse_all_products()
+            if tick_direction == 'TickBackwards':
+                self._larcv_io.reverse_all_products()
             self._larcv_io.initialize()
             self._larlite_io.open()
             

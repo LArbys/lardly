@@ -18,6 +18,7 @@ from lardly.ubdl.core.state import state_manager
 from lardly.ubdl.io.io_manager import io_manager
 from lardly.ubdl.plotters.registry import registry, register_plotter
 from lardly.detectoroutline import DetectorOutline
+from lardly.ubdl.ui.wireplane_viewer import visualize_larcv_image2d
 
 # Import plotter implementations
 from lardly.ubdl.plotters.implementations.reconu import RecoNuPlotter
@@ -112,8 +113,10 @@ class BatchRunner:
         
         # Load files into io_manager
         try:
-            io_manager.load_files(file_paths, tick_dirs)
-            logger.info(f"Loaded {len(file_paths)} data files")
+            # Use the first tick direction (assuming all files use the same direction)
+            tick_direction = tick_dirs[0] if tick_dirs else 'TickForwards'
+            io_manager.load_files(file_paths, tick_direction)
+            logger.info(f"Loaded {len(file_paths)} data files with tick direction: {tick_direction}")
             
             # Load the specified entry
             plot_config = config.get_plot_config()
@@ -249,12 +252,211 @@ class BatchRunner:
         
         return fig
     
-    def save_visualization(self, fig: go.Figure, output_config: Dict[str, Any]) -> bool:
+    def generate_2d_wireplane_figures(self) -> List[go.Figure]:
+        """
+        Generate 2D wireplane visualization figures
+        
+        Returns:
+            List of Plotly figures for each wireplane
+        """
+        # Get viewer configuration
+        viewer_config = config.get_viewer_2d_config()
+        
+        if not viewer_config.get('enabled', True):
+            return []
+        
+        # Get available image trees
+        available_trees = io_manager.get_available_trees()
+        image_trees = [tree for tree in available_trees if 'image2d' in tree and '_tree' in tree]
+        
+        if not image_trees:
+            logger.warning("No image2d trees found for wireplane visualization")
+            return []
+        
+        # Use the first available image tree
+        tree_name = image_trees[0]
+        prodname = tree_name.replace("image2d_", "").replace("_tree", "")
+        
+        figures = []
+        
+        try:
+            # Get the larcv IO manager
+            iolarcv = io_manager._larcv_io
+            if iolarcv is None:
+                logger.warning("larcv IO manager not available")
+                return []
+            
+            # Get the image data
+            ev_imgs = iolarcv.get_data("image2d", prodname)
+            img_v = ev_imgs.as_vector()
+            
+            # Get display options from config
+            colorscale = viewer_config.get('colorscale', 'Viridis')
+            contrast_range = viewer_config.get('contrast_range', [-50, 150])
+            min_value, max_value = contrast_range
+            
+            # Get enabled planes
+            enabled_planes = viewer_config.get('planes', [
+                {'plane': 0, 'show': True},
+                {'plane': 1, 'show': True},
+                {'plane': 2, 'show': True}
+            ])
+            
+            # Create figures for each enabled plane
+            for plane_config in enabled_planes:
+                plane = plane_config.get('plane', 0)
+                show = plane_config.get('show', True)
+                
+                if not show or plane >= img_v.size():
+                    continue
+                
+                # Create layout
+                layout = go.Layout(
+                    title=f'Wire Plane {plane} ({["U", "V", "Y"][plane]})',
+                    autosize=True,
+                    hovermode='closest',
+                    showlegend=False,
+                    width=600,
+                    height=400,
+                    xaxis_title='Wire Number',
+                    yaxis_title='Time Tick'
+                )
+                
+                # Create heatmap trace
+                trace = visualize_larcv_image2d(
+                    img_v.at(plane),
+                    minz=min_value,
+                    maxz=max_value,
+                    reverse_ticks=False,
+                    colorscale=colorscale
+                )
+                
+                fig = go.Figure(data=[trace], layout=layout)
+                figures.append(fig)
+                
+                logger.info(f"Generated wireplane figure for plane {plane}")
+                
+        except Exception as e:
+            logger.error(f"Error generating wireplane figures: {e}")
+            
+        return figures
+    
+    def _create_combined_html(self, fig_3d: go.Figure, figs_2d: List[go.Figure]) -> str:
+        """
+        Create combined HTML with 3D and 2D figures
+        
+        Args:
+            fig_3d: 3D figure
+            figs_2d: List of 2D figures
+            
+        Returns:
+            HTML content string
+        """
+        import json
+        
+        # Convert figures to JSON
+        fig_3d_json = fig_3d.to_json()
+        figs_2d_json = [fig_2d.to_json() for fig_2d in figs_2d]
+        
+        # Create JavaScript code to plot the figures
+        plot_scripts = []
+        
+        # 3D plot script
+        plot_scripts.append(f"""
+        Plotly.newPlot('plot-3d', {fig_3d_json}.data, {fig_3d_json}.layout, {{displayModeBar: true, displaylogo: false}});
+        """)
+        
+        # 2D plot scripts
+        for i, fig_2d_json in enumerate(figs_2d_json):
+            plot_scripts.append(f"""
+        Plotly.newPlot('plot-2d-{i}', {fig_2d_json}.data, {fig_2d_json}.layout, {{displayModeBar: true, displaylogo: false}});
+            """)
+        
+        # Create combined HTML
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Lardly Event Visualization</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+        }}
+        .container {{
+            max-width: 1400px;
+            margin: 0 auto;
+        }}
+        h1 {{
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }}
+        .section {{
+            margin-bottom: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }}
+        .section h2 {{
+            margin-top: 0;
+            color: #555;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }}
+        .wireplane-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }}
+        .wireplane-item {{
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lardly Event Visualization</h1>
+        
+        <div class="section">
+            <h2>3D Detector View</h2>
+            <div id="plot-3d" style="height:900px; width:100%;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>Wire Plane Views</h2>
+            <div class="wireplane-grid">
+                {''.join(f'<div class="wireplane-item"><h4>Plane {i} ({["U", "V", "Y"][i]})</h4><div id="plot-2d-{i}" style="height:400px; width:100%;"></div></div>' for i in range(len(figs_2d)))}
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', function() {{
+            {''.join(plot_scripts)}
+        }});
+    </script>
+</body>
+</html>"""
+        
+        return html_content
+    
+    def save_visualization(self, fig_3d: go.Figure, figs_2d: List[go.Figure], output_config: Dict[str, Any]) -> bool:
         """
         Save visualization to HTML and optionally images
         
         Args:
-            fig: Plotly figure to save
+            fig_3d: 3D Plotly figure to save
+            figs_2d: List of 2D wireplane figures to save
             output_config: Output configuration
             
         Returns:
@@ -268,12 +470,20 @@ class BatchRunner:
             # Create directory if needed
             html_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # Write HTML with embedded plotly.js for standalone viewing
-            fig.write_html(
-                str(html_path),
-                include_plotlyjs='cdn',  # Use CDN for smaller file size
-                config={'displayModeBar': True, 'displaylogo': False}
-            )
+            # Create combined HTML with both 3D and 2D figures
+            if figs_2d:
+                # Create combined layout
+                html_content = self._create_combined_html(fig_3d, figs_2d)
+                with open(html_path, 'w') as f:
+                    f.write(html_content)
+            else:
+                # Only 3D figure
+                fig_3d.write_html(
+                    str(html_path),
+                    include_plotlyjs='cdn',
+                    config={'displayModeBar': True, 'displaylogo': False}
+                )
+            
             logger.info(f"Saved HTML visualization to {html_path}")
             
             # Save images if requested
@@ -282,25 +492,36 @@ class BatchRunner:
                 image_dir = Path(output_config.get('image_dir', './images'))
                 image_dir.mkdir(parents=True, exist_ok=True)
                 
-                # Generate image filename from HTML filename
-                image_name = html_path.stem + f'.{image_format}'
-                image_path = image_dir / image_name
-                
-                # Save image (requires kaleido package)
+                # Save 3D image
                 try:
+                    image_3d_name = html_path.stem + f'_3d.{image_format}'
+                    image_3d_path = image_dir / image_3d_name
+                    
                     if image_format == 'png':
-                        fig.write_image(str(image_path), width=1400, height=900, scale=2)
+                        fig_3d.write_image(str(image_3d_path), width=1400, height=900, scale=2)
                     elif image_format == 'svg':
-                        fig.write_image(str(image_path))
+                        fig_3d.write_image(str(image_3d_path))
                     elif image_format == 'jpeg':
-                        fig.write_image(str(image_path), width=1400, height=900, scale=2)
-                    else:
-                        logger.warning(f"Unknown image format: {image_format}")
+                        fig_3d.write_image(str(image_3d_path), width=1400, height=900, scale=2)
+                    
+                    logger.info(f"Saved 3D image to {image_3d_path}")
+                    
+                    # Save 2D images
+                    for i, fig_2d in enumerate(figs_2d):
+                        image_2d_name = html_path.stem + f'_wireplane_{i}.{image_format}'
+                        image_2d_path = image_dir / image_2d_name
                         
-                    logger.info(f"Saved image to {image_path}")
+                        if image_format == 'png':
+                            fig_2d.write_image(str(image_2d_path), width=800, height=600, scale=2)
+                        elif image_format == 'svg':
+                            fig_2d.write_image(str(image_2d_path))
+                        elif image_format == 'jpeg':
+                            fig_2d.write_image(str(image_2d_path), width=800, height=600, scale=2)
+                        
+                        logger.info(f"Saved wireplane image to {image_2d_path}")
                     
                 except Exception as e:
-                    logger.warning(f"Could not save image (install kaleido for image export): {e}")
+                    logger.warning(f"Could not save images (install kaleido for image export): {e}")
             
             return True
             
@@ -334,9 +555,12 @@ class BatchRunner:
         # Generate 3D visualization
         fig_3d = self.generate_3d_visualization(plotters)
         
+        # Generate 2D wireplane visualizations
+        figs_2d = self.generate_2d_wireplane_figures()
+        
         # Save visualization
         output_config = config.get_output_config()
-        if not self.save_visualization(fig_3d, output_config):
+        if not self.save_visualization(fig_3d, figs_2d, output_config):
             return False
         
         logger.info("Batch run completed successfully")

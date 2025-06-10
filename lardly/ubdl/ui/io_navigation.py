@@ -133,6 +133,10 @@ def register_io_navigation_callbacks(app: dash.Dash) -> None:
         for tree in available_trees:
             if "image2d_" in tree:
                 wire_plane_options.append({'label': tree, 'value': tree})
+
+        # TODO feature: if wire and thrumu available, we apply the thrumu mask
+        # and register the images
+        
         
         err_msgs = [
             html.H5("Error Messages", style={'width': '100%'}),

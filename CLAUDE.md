@@ -68,6 +68,18 @@ To add a new visualization type:
 2. Inherit from `BasePlotter` and implement required methods
 3. Register the plotter in `app.py`'s `init_plotters()` function
 
+### Batch Mode Architecture
+
+Key components added for automated visualization generation:
+
+- **`lardly/ubdl/batch_runner.py`**: Main batch processing engine
+  - `BatchRunner.generate_3d_visualization()`: Creates 3D plots with detector outline
+  - `BatchRunner.generate_2d_wireplane_figures()`: Creates 2D wireplane heatmaps
+  - `BatchRunner._create_combined_html()`: Combines all plots into single HTML file
+- **Extended Config system**: `lardly/ubdl/config/settings.py` with plot-specific methods
+- **Tick direction support**: Properly configures IOManager for TickForwards/TickBackwards
+- **Available plotters**: MCTruth, RecoNu, CRT, IntimeFlash, LArFlowHits, NuInputClusters
+
 ### Data Flow
 
 1. Data files (ROOT format) are loaded via `io_manager`
@@ -92,8 +104,37 @@ python run_ubdl_app.py --batch --plot-config config.yaml
 
 This mode:
 - Loads data files specified in the configuration
-- Generates visualizations without starting the web server
-- Saves output as standalone HTML files
+- Generates both 3D and 2D wireplane visualizations automatically
+- Saves output as standalone HTML files with embedded JavaScript
 - Optionally exports static images (requires kaleido)
+- Respects tick_direction configuration (TickForwards/TickBackwards)
+
+### Batch Mode Features:
+- **3D Visualization**: Particle tracks, showers, detector outline, optical flashes
+- **2D Wireplane Views**: Automatically generated for all three planes (U, V, Y)
+- **Combined HTML Output**: Professional layout with both 3D and 2D sections
+- **Configuration-driven**: Specify which plotters to enable and their options
+- **Detector Outline Color**: Configurable via `detector_color: [R, G, B]` (RGB 0-255)
+
+### Configuration Structure:
+```yaml
+plot_config:
+  input_files:
+    - path: /path/to/file.root
+      tick_direction: TickBackwards  # or TickForwards
+  entry: 10
+  output:
+    html_file: visualization.html
+    save_images: true
+  plots:
+    - name: "MC Truth"
+      type: "MCTruth"
+      enabled: true
+  viewer_3d:
+    detector_color: [150, 200, 255]  # Light blue
+  viewer_2d:
+    enabled: true
+    colorscale: 'Viridis'
+```
 
 See `examples/` directory for configuration examples and `lardly/ubdl/config/plot_config_schema.yaml` for the full schema.

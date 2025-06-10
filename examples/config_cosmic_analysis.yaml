@@ -1,0 +1,68 @@
+# Cosmic Ray Analysis Configuration
+# This configuration focuses on cosmic ray muons and CRT data
+
+plot_config:
+  input_files:
+    - path: /path/to/your/dlmerged_file.root
+      tick_direction: TickForwards
+  
+  entry: 0
+  
+  output:
+    html_file: cosmic_analysis.html
+    save_images: true
+    image_format: png
+    image_dir: ./cosmic_plots/
+  
+  plots:
+    # CRT hits and tracks
+    - name: "CRT Data"
+      type: "CRT"
+      enabled: true
+      options:
+        show_hits: true
+        show_tracks: true
+        hit_size: 8
+    
+    # Show MC truth for cosmic rays
+    - name: "MC Truth Cosmics"
+      type: "MCTruth"
+      enabled: true
+      options:
+        show_mctrack: true
+        show_mcshower: false
+        show_neutrino_vertex: false
+    
+    # LArFlow hits colored by score
+    - name: "LArFlow Cosmic Hits"
+      type: "LArFlowHits"
+      enabled: true
+      options:
+        show_all_hits: true
+        color_by: "score"
+        score_threshold: 0.3
+  
+  viewer_3d:
+    camera:
+      # Top-down view for cosmic rays
+      eye:
+        x: 0
+        y: 3.0
+        z: 0.1
+      center:
+        x: 0
+        y: 0
+        z: 0
+      up:
+        x: 0
+        y: 0
+        z: 1
+    
+    layout:
+      width: 1400
+      height: 900
+      title: "Cosmic Ray Event"
+      showlegend: true
+    
+    show_detector: true
+    detector_opacity: 0.02

@@ -41,6 +41,10 @@ def main():
                    choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                    default='INFO', 
                    help='Set the logging level')
+    parser.add_argument('--batch', action='store_true',
+                        help='Run in batch mode (no interactive server)')
+    parser.add_argument('--plot-config', type=str,
+                        help='Path to plot configuration file for batch mode')
     
     args = parser.parse_args()
     
@@ -48,11 +52,30 @@ def main():
     logging.getLogger().setLevel(getattr(logging, args.log_level))
 
     # Add the project root to the Python path if needed
-    project_root = Path(__file__).parent.parent
+    project_root = Path(__file__).parent
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     
-    # Import lardly modules
+    # Check if running in batch mode
+    if args.batch:
+        # Run in batch mode
+        if not args.plot_config:
+            logger.error("--plot-config is required when running in batch mode")
+            parser.print_help()
+            sys.exit(1)
+        
+        try:
+            from lardly.ubdl.batch_runner import run_batch
+        except ImportError as e:
+            logger.error(f"Error importing batch runner: {e}")
+            sys.exit(1)
+        
+        # Run batch processing
+        logger.info(f"Running in batch mode with config: {args.plot_config}")
+        success = run_batch(args.plot_config)
+        sys.exit(0 if success else 1)
+    
+    # Import lardly modules for interactive mode
     try:
         from lardly.ubdl.config.settings import config, load_config
         from lardly.ubdl.core.app import create_app, run_app

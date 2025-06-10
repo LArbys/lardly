@@ -4,7 +4,7 @@ Configuration management for Lardly
 import os
 import yaml
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 class Config:
     """
@@ -200,6 +200,102 @@ class Config:
     def config_file_path(self) -> Optional[str]:
         """Get the path to the currently loaded configuration file"""
         return self._config_file_path
+    
+    def get_plot_config(self) -> Optional[Dict[str, Any]]:
+        """
+        Get the plot configuration if available
+        
+        Returns:
+            Plot configuration dictionary or None
+        """
+        return self.get('plot_config')
+    
+    def get_enabled_plots(self) -> List[Dict[str, Any]]:
+        """
+        Get list of enabled plots from configuration
+        
+        Returns:
+            List of enabled plot configurations
+        """
+        plot_config = self.get_plot_config()
+        if not plot_config or 'plots' not in plot_config:
+            return []
+        
+        return [p for p in plot_config['plots'] if p.get('enabled', True)]
+    
+    def get_input_files(self) -> List[Dict[str, str]]:
+        """
+        Get input file configuration
+        
+        Returns:
+            List of input file configurations
+        """
+        plot_config = self.get_plot_config()
+        if not plot_config or 'input_files' not in plot_config:
+            return []
+        
+        return plot_config['input_files']
+    
+    def get_output_config(self) -> Dict[str, Any]:
+        """
+        Get output configuration
+        
+        Returns:
+            Output configuration dictionary
+        """
+        plot_config = self.get_plot_config()
+        if not plot_config or 'output' not in plot_config:
+            return {
+                'html_file': 'output.html',
+                'save_images': False,
+                'image_format': 'png',
+                'image_dir': './images/'
+            }
+        
+        return plot_config['output']
+    
+    def get_viewer_3d_config(self) -> Dict[str, Any]:
+        """
+        Get 3D viewer configuration
+        
+        Returns:
+            3D viewer configuration dictionary
+        """
+        plot_config = self.get_plot_config()
+        if plot_config and 'viewer_3d' in plot_config:
+            return plot_config['viewer_3d']
+        
+        return {
+            'show_detector': True,
+            'detector_opacity': 0.1,
+            'layout': {
+                'width': 1200,
+                'height': 800,
+                'showlegend': True
+            }
+        }
+    
+    def get_viewer_2d_config(self) -> Dict[str, Any]:
+        """
+        Get 2D viewer configuration
+        
+        Returns:
+            2D viewer configuration dictionary
+        """
+        plot_config = self.get_plot_config()
+        if plot_config and 'viewer_2d' in plot_config:
+            return plot_config['viewer_2d']
+        
+        return {
+            'enabled': True,
+            'planes': [
+                {'plane': 0, 'show': True},
+                {'plane': 1, 'show': True},
+                {'plane': 2, 'show': True}
+            ],
+            'colorscale': 'Viridis',
+            'contrast_range': [-50, 150]
+        }
 
 # Create a global instance for convenience
 config = Config()

@@ -1,0 +1,116 @@
+# Plot Configuration Schema for Lardly
+# This file defines the structure for plot configuration files
+
+# Example configuration structure:
+plot_config:
+  # Input data files
+  input_files:
+    - path: /path/to/file1.root
+      tick_direction: TickForwards  # or TickBackwards
+    - path: /path/to/file2.root
+      tick_direction: TickForwards
+  
+  # Entry to visualize (optional, defaults to 0)
+  entry: 0
+  
+  # Output settings
+  output:
+    # Output HTML file path
+    html_file: output_visualization.html
+    # Optional: save individual plot images
+    save_images: false
+    image_format: png  # png, svg, jpeg
+    image_dir: ./plot_images/
+  
+  # Plot specifications
+  plots:
+    # Each plot has a name and configuration
+    - name: "MC Truth Visualization"
+      type: "MCTruth"  # Must match registered plotter name
+      enabled: true
+      options:
+        show_mctrack: true
+        show_mcshower: true
+        show_neutrino_vertex: true
+    
+    - name: "CRT Hits and Tracks"
+      type: "CRT"
+      enabled: true
+      options:
+        show_hits: true
+        show_tracks: true
+        hit_size: 5
+    
+    - name: "Optical Flashes"
+      type: "IntimeFlash"
+      enabled: true
+      options:
+        show_flashes: true
+        flash_threshold: 10.0
+    
+    - name: "Reconstructed Neutrino"
+      type: "RecoNu"
+      enabled: true
+      options:
+        show_vertex: true
+        show_tracks: true
+        show_showers: true
+    
+    - name: "LArFlow Hits"
+      type: "LArFlowHits"
+      enabled: true
+      options:
+        show_all_hits: false
+        color_by: "score"  # score, cluster_id, track_id
+        score_threshold: 0.5
+    
+    - name: "Nu Input Clusters"
+      type: "NuInputClusters"
+      enabled: true
+      options:
+        show_by_cluster: true
+        show_by_ssnet: false
+  
+  # 3D viewer settings
+  viewer_3d:
+    # Camera position and angle
+    camera:
+      eye:
+        x: 1.5
+        y: 1.5
+        z: 1.5
+      center:
+        x: 0
+        y: 0
+        z: 0
+      up:
+        x: 0
+        y: 1
+        z: 0
+    
+    # Layout settings
+    layout:
+      width: 1200
+      height: 800
+      showlegend: true
+      paper_bgcolor: 'white'
+      plot_bgcolor: 'rgba(0,0,0,0)'
+    
+    # Detector outline settings
+    show_detector: true
+    detector_opacity: 0.1
+  
+  # Wireplane viewer settings
+  viewer_2d:
+    enabled: true
+    planes:
+      - plane: 0
+        show: true
+      - plane: 1
+        show: true
+      - plane: 2
+        show: true
+    
+    # Image display settings
+    colorscale: 'Viridis'
+    contrast_range: [-50, 150]

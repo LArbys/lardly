@@ -1,0 +1,96 @@
+# Example Lardly Plot Configuration for Students
+# This configuration will generate a visualization of neutrino interactions
+
+plot_config:
+  # Input data file - replace with your data file path
+  input_files:
+    - path: nue_merged_dlreco.root
+      tick_direction: TickBackwards
+  
+  # Entry number to visualize (0-based index)
+  entry: 10
+  
+  # Output settings
+  output:
+    html_file: neutrino_event_10.html
+    save_images: true
+    image_format: png
+    image_dir: ./event_10_plots/
+  
+  # Plot specifications - choose which visualizations to include
+  plots:
+    # Show MC truth information
+    - name: "MC Truth"
+      type: "MCTruth"
+      enabled: true
+      options:
+        show_mctrack: true
+        show_mcshower: true
+        show_neutrino_vertex: true
+    
+    # Show reconstructed neutrino information
+    - name: "Reconstructed Neutrino"
+      type: "RecoNu"
+      enabled: true
+      options:
+        show_vertex: true
+        show_tracks: true
+        show_showers: true
+    
+    # Show optical flashes for timing
+    - name: "In-time Flashes"
+      type: "IntimeFlash"
+      enabled: true
+      options:
+        show_flashes: true
+        flash_threshold: 5.0
+    
+    # Show LArFlow hit reconstruction
+    - name: "LArFlow Hits"
+      type: "LArFlowHits"
+      enabled: true
+      options:
+        show_all_hits: false
+        color_by: "score"
+        score_threshold: 0.7
+  
+  # 3D viewer settings
+  viewer_3d:
+    camera:
+      # Side view of detector
+      eye:
+        x: 2.0
+        y: 0.5
+        z: 0.5
+      center:
+        x: 0
+        y: 0
+        z: 0
+      up:
+        x: 0
+        y: 1
+        z: 0
+    
+    layout:
+      width: 1400
+      height: 900
+      showlegend: true
+      paper_bgcolor: 'white'
+      plot_bgcolor: 'rgba(0,0,0,0)'
+      title: "Neutrino Event Visualization"
+    
+    show_detector: true
+    detector_opacity: 1.0
+  
+  # 2D wireplane viewer settings
+  viewer_2d:
+    enabled: true
+    planes:
+      - plane: 0
+        show: true
+      - plane: 1
+        show: true
+      - plane: 2
+        show: true
+    colorscale: 'Viridis'
+    contrast_range: [-20, 80]

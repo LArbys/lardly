@@ -1,0 +1,34 @@
+# Minimal Configuration - MC Truth Only
+# This configuration shows only the true particle information
+
+plot_config:
+  input_files:
+    - path: /path/to/your/dlmerged_file.root
+      tick_direction: TickForwards
+  
+  entry: 0
+  
+  output:
+    html_file: mctruth_visualization.html
+  
+  plots:
+    - name: "MC Truth Particles"
+      type: "MCTruth"
+      enabled: true
+      options:
+        show_mctrack: true
+        show_mcshower: true
+        show_neutrino_vertex: true
+  
+  viewer_3d:
+    camera:
+      eye:
+        x: 1.5
+        y: 1.0
+        z: 1.0
+    layout:
+      width: 1200
+      height: 800
+      title: "MC Truth Visualization"
+    show_detector: true
+    detector_opacity: 0.05

@@ -182,6 +182,46 @@ def visualize_larlite_mctrack( mctrack, origin=None,
     if steps_np.shape[0]==0:
         return None
 
+    # Calculate image coordinates for each point along the track
+    from larlite import larutil
+    cm_per_tick = larutil.LArProperties.GetME().DriftVelocity() * 0.5
+    npoints = steps_np.shape[0]
+    customdata = np.zeros((npoints, 5))  # t, tick, U, V, Y
+    
+    for ipt in range(npoints):
+        pos = steps_np[ipt, :]
+        tick = 3200 + pos[0] / cm_per_tick
+        t = pos[0] / cm_per_tick * 0.5
+        
+        # Get wire coordinates for each plane
+        try:
+            import ROOT as rt
+            pos_vec = rt.TVector3(pos[0], pos[1], pos[2])
+            wire_u = larutil.Geometry.GetME().WireCoordinate(pos_vec, 0)
+            wire_v = larutil.Geometry.GetME().WireCoordinate(pos_vec, 1)
+            wire_y = larutil.Geometry.GetME().WireCoordinate(pos_vec, 2)
+            
+            customdata[ipt, 0] = t
+            customdata[ipt, 1] = tick
+            customdata[ipt, 2] = wire_u
+            customdata[ipt, 3] = wire_v
+            customdata[ipt, 4] = wire_y
+        except:
+            # If coordinate calculation fails, set to zero
+            customdata[ipt, :] = 0
+    
+    hovertemplate = """
+    <b>Track ID</b>: %{text}<br>
+    <b>x</b>: %{x:.1f}<br>
+    <b>y</b>: %{y:.1f}<br>
+    <b>z</b>: %{z:.1f}<br>
+    <b>t</b>: %{customdata[0]:.1f} usec<br>
+    <b>tick</b>: %{customdata[1]:.0f}<br>
+    <b>U</b>: %{customdata[2]:.0f}<br>
+    <b>V</b>: %{customdata[3]:.0f}<br>
+    <b>Y</b>: %{customdata[4]:.0f}<br>
+    """
+
     trackvis = {
         "type":"scatter3d",
         "x":steps_np[:,0],
@@ -189,7 +229,10 @@ def visualize_larlite_mctrack( mctrack, origin=None,
         "z":steps_np[:,2],
         "mode":"lines",
         "name":"id[%d]<br>pdg[%d]"%(mctrack.TrackID(),pid),
+        "text":"id[%d] pdg[%d]"%(mctrack.TrackID(),pid),
         "line":{"color":color,"width":width},
+        "hovertemplate":hovertemplate,
+        "customdata":customdata,
     }
 
     return trackvis

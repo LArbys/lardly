@@ -160,10 +160,31 @@ class MCTruthPlotter(BasePlotter):
             y = [nunode.start[1]]
             z = [nunode.start[2]]
             E_MeV = nunode.E_MeV
+            
+            # Calculate image coordinates for neutrino vertex
+            cm_per_tick = larutil.LArProperties.GetME().DriftVelocity() * 0.5
+            pos = [nunode.start[0], nunode.start[1], nunode.start[2]]
+            tick = 3200 + pos[0] / cm_per_tick
+            t = pos[0] / cm_per_tick * 0.5
+            
+            # Get wire coordinates for each plane
+            import ROOT as rt
+            pos_vec = rt.TVector3(pos[0], pos[1], pos[2])
+            wire_u = larutil.Geometry.GetME().WireCoordinate(pos_vec, 0)
+            wire_v = larutil.Geometry.GetME().WireCoordinate(pos_vec, 1)
+            wire_y = larutil.Geometry.GetME().WireCoordinate(pos_vec, 2)
+            
+            customdata = np.array([[t, tick, wire_u, wire_v, wire_y]])
+            
             nu_hover="""
             <b>x</b>: %{x:.2f}<br>
             <b>y</b>: %{y:.2f}<br>
             <b>z</b>: %{z:.2f}<br>
+            <b>t</b>: %{customdata[0]:.1f} usec<br>
+            <b>tick</b>: %{customdata[1]:.0f}<br>
+            <b>U</b>: %{customdata[2]:.0f}<br>
+            <b>V</b>: %{customdata[3]:.0f}<br>
+            <b>Y</b>: %{customdata[4]:.0f}<br>
             """
             nu_hover +=f"<b>E</b>: {E_MeV} MeV<br>"
             
@@ -176,6 +197,7 @@ class MCTruthPlotter(BasePlotter):
                     "name":f"NuVtx",
                     "marker":{"color":'rgba(0,0,0,1)',"size":4},
                     "hovertemplate":nu_hover,
+                    "customdata":customdata,
                 }
             traces.append( nu_trace )
         
@@ -260,6 +282,45 @@ class MCTruthPlotter(BasePlotter):
     
                 profcolor = 'rgb(0,255,255)' if pid==22 else 'rgb(0,255,0)'
                 print(profpts)
+                
+                # Calculate image coordinates for shower profile points
+                cm_per_tick = larutil.LArProperties.GetME().DriftVelocity() * 0.5
+                npoints = profpts.shape[0]
+                customdata = np.zeros((npoints, 5))  # t, tick, U, V, Y
+                
+                for ipt in range(npoints):
+                    pos = profpts[ipt, :]
+                    tick = 3200 + pos[0] / cm_per_tick
+                    t = pos[0] / cm_per_tick * 0.5
+                    
+                    # Get wire coordinates for each plane
+                    try:
+                        import ROOT as rt
+                        pos_vec = rt.TVector3(pos[0], pos[1], pos[2])
+                        wire_u = larutil.Geometry.GetME().WireCoordinate(pos_vec, 0)
+                        wire_v = larutil.Geometry.GetME().WireCoordinate(pos_vec, 1)
+                        wire_y = larutil.Geometry.GetME().WireCoordinate(pos_vec, 2)
+                        
+                        customdata[ipt, 0] = t
+                        customdata[ipt, 1] = tick
+                        customdata[ipt, 2] = wire_u
+                        customdata[ipt, 3] = wire_v
+                        customdata[ipt, 4] = wire_y
+                    except:
+                        # If coordinate calculation fails, set to zero
+                        customdata[ipt, :] = 0
+                
+                shower_hovertemplate = """
+                <b>Shower ID</b>: %{text}<br>
+                <b>x</b>: %{x:.1f}<br>
+                <b>y</b>: %{y:.1f}<br>
+                <b>z</b>: %{z:.1f}<br>
+                <b>t</b>: %{customdata[0]:.1f} usec<br>
+                <b>tick</b>: %{customdata[1]:.0f}<br>
+                <b>U</b>: %{customdata[2]:.0f}<br>
+                <b>V</b>: %{customdata[3]:.0f}<br>
+                <b>Y</b>: %{customdata[4]:.0f}<br>
+                """
         
                 shower_prof_trace = {
                     "type":"scatter3d",
@@ -268,9 +329,10 @@ class MCTruthPlotter(BasePlotter):
                     "z":profpts[:,2],
                     "mode":"lines",
                     "name":f"{plotlabel}[{tid}]",
+                    "text":f"id[{tid}] pdg[{pid}]",
                     "line":{"color":profcolor,"width":4},
-                    #"customdata":meta,
-                    #"hovertemplate":hovertemplate
+                    "customdata":customdata,
+                    "hovertemplate":shower_hovertemplate
                 }
                 shower_traces.append( shower_prof_trace)
             self.log_info(f"Number of shower traces: {len(shower_traces)}")

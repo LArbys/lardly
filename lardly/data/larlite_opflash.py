@@ -1,6 +1,6 @@
 from __future__ import print_function
 import os,sys
-from ..ubdl.pmtpos import getPMTPosByOpChannel, getPMTPosByOpDet
+from ..ubdl.pmtpos import getPMTPosByOpChannel, getPMTPosByOpDet, getOpChannelFromOpDet, getOpDetFromOpChannel
 import numpy as np
 from plotly import graph_objects as go
 
@@ -52,8 +52,8 @@ def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_co
 
 def visualize_larlite_opflash_3d( opflash, pmt_radius_cm=15.24,
                                   min_pe=None, max_pe=None,
-                                  use_v4_geom=True,
-                                  use_opdet_index=True,
+                                  use_v4_geom=False,
+                                  use_opdet_index=False,
                                   xpos_by_time=False,
                                   pe_draw_threshold=0.0):
     from larlite import larlite
@@ -70,6 +70,7 @@ def visualize_larlite_opflash_3d( opflash, pmt_radius_cm=15.24,
 
     all_pe = [ 0 for x in range(32) ]
     petot = 0.0
+    # The index for PE(n) is the OpChannel Number (I think)
     for n in range(opflash.nOpDets()):
         pe = opflash.PE(n)
         ch = n%100
@@ -94,11 +95,18 @@ def visualize_larlite_opflash_3d( opflash, pmt_radius_cm=15.24,
         value = (pe-min_pe)/(max_pe-min_pe)
         value = min( value, 1.0 )
         value = max( value, 0 )
-        if use_opdet_index:
-            center = getPMTPosByOpDet(ipmt, use_v4_geom=use_v4_geom)
-        else:
-            center = getPMTPosByOpChannel(ipmt, use_v4_geom=use_v4_geom)
 
+        # how to interpret opflash PE(n) indexing
+        if not use_opdet_index:
+            # default: interpret as OpChannel
+            opchid = ipmt
+            center = getPMTPosByOpChannel(ipmt, use_v4_geom=use_v4_geom)
+            opdetid = getOpDetFromOpChannel(ipmt)
+        else:
+            # interpret indeex as (larsoft opdet index)
+            opdetid = ipmt
+            center = getPMTPosByOpDet(ipmt, use_v4_geom=use_v4_geom)
+            opchid  = getOpChannelFromOpDet(ipmt)
             
         if xpos_by_time:
             t = opflash.Time()
@@ -108,12 +116,16 @@ def visualize_larlite_opflash_3d( opflash, pmt_radius_cm=15.24,
             recenter = center
         
         mesh, outline = define_circle_mesh( recenter, pmt_radius_cm, value, nsteps=20 )
+        hovertext =  f"<b>OpChannel</b>: {opchid}<br>"
+        hovertext += f"<b>OpDetID</b>: {opdetid}"
+        mesh['hovertext'] = hovertext
+        outline['hovertext'] = hovertext
         circles.append( mesh )
         circles.append( outline )
         
     return circles
 
-def visualize_empty_opflash( pmt_radius_cm=15.2, use_v4_geom=True, use_opdet_index=True ):
+def visualize_empty_opflash( pmt_radius_cm=15.2, use_v4_geom=True, use_opdet_index=False ):
 
     circles = []
     nsteps = 20
@@ -123,11 +135,19 @@ def visualize_empty_opflash( pmt_radius_cm=15.2, use_v4_geom=True, use_opdet_ind
     for ipmt in range(32):
         pe = 0.0
         if use_opdet_index:
+            opdetid = ipmt
             center = getPMTPosByOpDet(ipmt, use_v4_geom=use_v4_geom)
+            opchid  = getOpChannelFromOpDet(ipmt)
         else:
+            opchid = ipmt
             center = getPMTPosByOpChannel(ipmt, use_v4_geom=use_v4_geom)
+            opdetid = getOpDetFromOpChannel(ipmt)
 
         mesh, outline = define_circle_mesh( center, pmt_radius_cm, pe, nsteps=20 )
+        hovertext =  f"<b>OpChannel</b>: {opchid}<br>"
+        hovertext += f"<b>OpDetID</b>: {opdetid}"
+        mesh['hovertext'] = hovertext
+        outline['hovertext'] = hovertext
         circles.append( mesh )
         circles.append( outline )
         

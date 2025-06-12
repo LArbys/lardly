@@ -243,7 +243,7 @@ class IntimeFlashPlotter(BasePlotter):
                 intime_index = flash_data['intime_index']
                 flash = ev_flash.at(intime_index)
                 self.log_info(f"Visualizing intime flash at index {intime_index}, time {flash.Time()}")
-                traces = visualize_larlite_opflash_3d(flash, pmt_radius_cm=pmt_radius, pe_draw_threshold=pe_threshold)
+                traces = visualize_larlite_opflash_3d(flash, pmt_radius_cm=pmt_radius, pe_draw_threshold=pe_threshold, use_v4_geom=True)
                 
             elif selected_flash.isdigit():
                 # Show specific flash by index
@@ -251,7 +251,7 @@ class IntimeFlashPlotter(BasePlotter):
                 if 0 <= index < ev_flash.size():
                     flash = ev_flash.at(index)
                     self.log_info(f"Visualizing flash at index {index}, time {flash.Time()}")
-                    traces = visualize_larlite_opflash_3d(flash, pmt_radius_cm=pmt_radius, pe_draw_threshold=pe_threshold)
+                    traces = visualize_larlite_opflash_3d(flash, pmt_radius_cm=pmt_radius, pe_draw_threshold=pe_threshold, use_v4_geom=True)
                 else:
                     self.log_error(f"Flash index {index} out of range")
                     traces = visualize_empty_opflash(pmt_radius=pmt_radius)

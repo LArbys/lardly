@@ -91,17 +91,19 @@ _tpc_origin = (-1.825,0.97,-4.0)
 
 # need a translation from opchannel to opdet
 _opch2opdet_map = {}
-def fillOpCh2OpDetMap():
+def fillOpCh2OpDetMap(verbose=False):
     global _opch2opdet_map
     for opdet in _opdet2opch_map:
         for opch in _opdet2opch_map[opdet]:
             _opch2opdet_map[ opch ] = opdet
-        print("Set OpCh[",_opdet2opch_map[opdet][0],"] to OpDet[",opdet,"]")
-
-def getPMTPosByOpDet( opdet, in_tpc_coord=True, use_v4_geom=True ):
+        if verbose:
+            print("Set OpCh[",_opdet2opch_map[opdet][0],"] to OpDet[",opdet,"]")
+fillOpCh2OpDetMap()
+        
+def getPMTPosByOpDet( opdet, in_tpc_coord=True, use_v4_geom=False ):
     
     if use_v4_geom:
-        pos = (-11.0, _pmtposmap[opdet][1], _pmtposmap[opdet][2] )
+        pos = (-11.0, _pmtposmap_v4[opdet][1], _pmtposmap_v4[opdet][2] )
         return pos
 
     # else we use v12 geometry information.
@@ -111,10 +113,10 @@ def getPMTPosByOpDet( opdet, in_tpc_coord=True, use_v4_geom=True ):
         return pos_tpc_coord
     return pos_global    
         
-def getPMTPosByOpChannel( opch, in_tpc_coord=True, use_v4_geom=True ):
+def getPMTPosByOpChannel( opch, in_tpc_coord=True, use_v4_geom=False ):
     
     if use_v4_geom:
-        pos = (-11.0, _pmtposmap[opch][1], _pmtposmap[opch][2] )
+        pos = (-11.0, _pmtposmap_v4[opch][1], _pmtposmap_v4[opch][2] )
         return pos
 
     # else we use v12 geometry information.    
@@ -126,9 +128,9 @@ def getPMTPosByOpChannel( opch, in_tpc_coord=True, use_v4_geom=True ):
         
 #=======================================================================
 # OLD PMT POS MAP, USING OLD UBOONE GDML
-# where PMTs are mistakeningly in the PMTs
+# where PMTs are mistakeningly in the TPCs.
 # coordinates are in larsoft coordinates
-_pmtposmap = {
+_pmtposmap_v4 = {
     26:[0.558, 55.249, 87.7605],
     25:[0.703, 55.249, 128.355],
     27:[0.665, 27.431, 51.1015],
@@ -167,7 +169,6 @@ _pmtposmap = {
     32:[-161.3,-27.755 + 20/2*2.54, 760.575],
 }
 
-
 def getPosFromID( id, origin_at_detcenter=False ):
     """ the id here is interpretted as the opchannel"""
     pos = getPMTPosByOpChannel(id)
@@ -175,6 +176,15 @@ def getPosFromID( id, origin_at_detcenter=False ):
 
 def getDetectorCenter():
     return [125.0,0.5*(-57.022+55.8),0.5*(990.356+51.1015)]
+
+def getOpChannelFromOpDet( opdetid ):
+    global _opdet2opch_map
+    return _opdet2opch_map[opdetid][0]
+
+def getOpDetFromOpChannel( opchid ):
+    global _opch2opdet_map
+    return _opch2opdet_map[opchid]
+
 
 if __name__ == "__main__":
 

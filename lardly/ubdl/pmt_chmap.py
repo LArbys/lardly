@@ -1,6 +1,6 @@
 
 
-# ( FEMCH, PMT POSID )
+# ( FEMCH to PMT POSID (PXX) )
 PMT_CHMAP = { 0:1,
               1:2,
               2:3,

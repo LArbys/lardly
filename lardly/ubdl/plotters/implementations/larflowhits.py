@@ -318,7 +318,7 @@ class LArFlowHitsPlotter(BasePlotter):
                         "color": custom_data[:, 4],  # larmatch score
                         "size": marker_size,
                         "opacity": marker_opacity,
-                        "colorscale": "Viridis",
+                        "colorscale": "Bluered",
                         "cmin": 0.0,
                         "cmax": 1.0,
                         "colorbar": {
@@ -339,7 +339,7 @@ class LArFlowHitsPlotter(BasePlotter):
                         "color": custom_data[:, score_idx],
                         "size": marker_size,
                         "opacity": marker_opacity,
-                        "colorscale": "Plasma",
+                        "colorscale": "Bluered",
                         "cmin": 0.0,
                         "cmax": 1.0,
                         "colorbar": {
@@ -360,7 +360,7 @@ class LArFlowHitsPlotter(BasePlotter):
                         "color": custom_data[:, score_idx],
                         "size": marker_size,
                         "opacity": marker_opacity,
-                        "colorscale": "Cividis",
+                        "colorscale": "Bluered",
                         "cmin": 0.0,
                         "cmax": 1.0,
                         "colorbar": {
@@ -387,7 +387,7 @@ class LArFlowHitsPlotter(BasePlotter):
                         "color": charges,
                         "size": marker_size,
                         "opacity": marker_opacity,
-                        "colorscale": "Viridis",
+                        "colorscale": "Jet",
                         "colorbar": {
                             "title": f"{plane_charge} Plane Charge",
                             "thickness": 15,
@@ -420,7 +420,7 @@ class LArFlowHitsPlotter(BasePlotter):
                         "color": custom_data[:, 4],  # shower score = renormed_shower_score
                         "size": marker_size,
                         "opacity": marker_opacity,
-                        "colorscale": "Viridis",
+                        "colorscale": "Bluered",
                         "cmin": 0.0,
                         "cmax": 1.0
                     }

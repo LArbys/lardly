@@ -28,6 +28,7 @@ def init_plotters() -> None:
     Initialize and register all plotters
     """
     # Register all plotters
+    print("Register Plotters ( core/app.py:init_plotters()) ")
 
     from lardly.ubdl.plotters.implementations.reconu import RecoNuPlotter
     register_plotter(RecoNuPlotter())
@@ -46,6 +47,9 @@ def init_plotters() -> None:
 
     from lardly.ubdl.plotters.implementations.larflowhits import LArFlowHitsPlotter
     register_plotter(LArFlowHitsPlotter())
+
+    from lardly.ubdl.plotters.implementations.keypointhits import KeypointHitsPlotter
+    register_plotter(KeypointHitsPlotter())
 
     # Add more plotters here as needed
     # register_plotter(CRTHitPlotter())

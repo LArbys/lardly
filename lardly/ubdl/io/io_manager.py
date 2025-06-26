@@ -56,8 +56,11 @@ class IOManager:
                 logger.info("IOManager set to TickForwards")
             
             self._larlite_io = larlite.storage_manager(larlite.storage_manager.kREAD)
-            self._recoTree = rt.TChain("KPSRecoManagerTree")
-            self._eventTree = rt.TChain("EventTree")  # ntuple tree
+            self._larlite_io.set_verbosity(1)
+            
+            self._recoTree   = rt.TChain("KPSRecoManagerTree")
+            self._cosmicTree = rt.TChain("KPSCosmicTree")
+            self._eventTree  = rt.TChain("EventTree")  # ntuple tree
             
             self._available_trees = []
             
@@ -79,6 +82,10 @@ class IOManager:
                     
                     if 'KPSRecoManagerTree' in key:
                         self._recoTree.AddFile(file_path)
+                        tree_name = key.strip().split()[1]
+                        self._available_trees.append(tree_name)
+                    if 'KPSCosmicTree' in key:
+                        self._cosmicTree.AddFile(file_path)
                         tree_name = key.strip().split()[1]
                         self._available_trees.append(tree_name)
                     if 'EventTree' in key:
@@ -105,6 +112,7 @@ class IOManager:
             for name, tree in [("larcv", self._larcv_io), 
                               ("larlite", self._larlite_io), 
                               ("reco", self._recoTree), 
+                              ("cosmic",self._cosmicTree),
                               ("ntuple", self._eventTree)]:
                 tree_nentries = 0
                 
@@ -119,7 +127,7 @@ class IOManager:
                             tree_nentries = tree.get_nentries()
                         except:
                             tree_nentries = 0
-                    elif name in ["reco", "ntuple"]:
+                    elif name in ["reco", "ntuple","cosmic"]:
                         try:
                             tree_nentries = tree.GetEntries()
                         except:
@@ -146,6 +154,7 @@ class IOManager:
             self._larcv_io = None
             self._larlite_io = None
             self._recoTree = None
+            self._cosmicTree = None
             self._eventTree = None
             return False
     
@@ -182,6 +191,12 @@ class IOManager:
                     self._recoTree.GetEntry(entry)
                 except Exception as e:
                     logger.error(f"Error reading recoTree entry: {e}")
+
+            if self._cosmicTree is not None:
+                try:
+                    self._cosmicTree.GetEntry(entry)
+                except Exception as e:
+                    logger.error(f"Error reading cosmicTree entry: {e}")
             
             if self._eventTree is not None:
                 try:
@@ -209,6 +224,7 @@ class IOManager:
             'iolarlite': self._larlite_io,
             'iolarcv': self._larcv_io,
             'recoTree': self._recoTree,
+            'cosmicTree':self._cosmicTree,
             'eventTree': self._eventTree
         }
     

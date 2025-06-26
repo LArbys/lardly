@@ -59,6 +59,7 @@ class NuInputClustersPlotter(BasePlotter):
         possible_input_tree_list = [
             "showergoodhit", 
             "trackprojsplit_wcfilter",
+            "trackprojsplit_offtrigger",
             "cosmicproton",
             "hip",
             "showerkp"

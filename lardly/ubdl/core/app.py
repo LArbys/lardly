@@ -51,9 +51,10 @@ def init_plotters() -> None:
     from lardly.ubdl.plotters.implementations.keypointhits import KeypointHitsPlotter
     register_plotter(KeypointHitsPlotter())
 
+    from lardly.ubdl.plotters.implementations.cosmictracks import CosmicTracksPlotter
+    register_plotter(CosmicTracksPlotter())
+
     # Add more plotters here as needed
-    # register_plotter(CRTHitPlotter())
-    # register_plotter(MCTruthPlotter())
     # etc.
 
 def create_layout() -> html.Div:

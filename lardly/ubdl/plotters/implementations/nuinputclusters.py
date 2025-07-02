@@ -71,6 +71,16 @@ class NuInputClustersPlotter(BasePlotter):
             if lltree in tree_keys:
                 self._input_trees_present.append(treename)
                 logger.info(f"Found input tree: {lltree}")
+
+        # look for unexpected larflowcluster_X_tree tree names
+        for present in tree_keys:
+            splitlist = present.strip().split("_")
+            if len(splitlist)>=3:
+                if splitlist[0]=="larflowcluster" and splitlist[-1]=="tree":
+                    producername = present[len("larflowcluster_"):-len("_tree")]
+                    logger.info(f"Found larflowcluster tree: {producername}")
+                    if producername not in self._input_trees_present:
+                        self._input_trees_present.append(producername)
         
         if not self._input_trees_present:
             logger.info("NuInputClustersPlotter not applicable: no input trees found")
@@ -81,7 +91,7 @@ class NuInputClustersPlotter(BasePlotter):
     
     def initialize_options(self) -> None:
         """Initialize options for this plotter"""
-        self.set_option_value("coloring_mode", "ssnet")  # Default to ssnet (particle ID) coloring
+        self.set_option_value("coloring_mode", "cluster")  # Default to ssnet (particle ID) coloring
         self.set_option_value("particle_type", "shower")  # Default to shower score
         self.set_option_value("keypoint_type", "nu")  # Default to nu keypoint
         self.set_option_value("plane_charge", "U")  # Default to U plane
@@ -210,7 +220,7 @@ class NuInputClustersPlotter(BasePlotter):
             
             # Process options
             cluster_source = options.get('cluster_source', self._input_trees_present[0] if self._input_trees_present else None)
-            coloring_mode = options.get('coloring_mode', self.get_option_value('coloring_mode', 'ssnet'))
+            coloring_mode = options.get('coloring_mode', self.get_option_value('coloring_mode', 'cluster'))
             particle_type = options.get('particle_type', self.get_option_value('particle_type', 'shower'))
             keypoint_type = options.get('keypoint_type', self.get_option_value('keypoint_type', 'nu'))
             plane_charge = options.get('plane_charge', self.get_option_value('plane_charge', 'U'))

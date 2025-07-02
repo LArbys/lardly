@@ -38,6 +38,7 @@ class IntimeFlashPlotter(BasePlotter):
         super().__init__("IntimeFlash", "In-time Optical Flashes")
         self._imports_successful = _IMPORTS_SUCCESSFUL
         logger.info(f"IntimeFlashPlotter initialized. Imports successful: {self._imports_successful}")
+        self._available_trees = []
         self._flash_data = None  # Cache for flash data
     
     def is_applicable(self, tree_keys: List[str]) -> bool:
@@ -54,17 +55,23 @@ class IntimeFlashPlotter(BasePlotter):
         if not self._imports_successful:
             logger.warning("IntimeFlashPlotter not applicable: imports failed")
             return False
+
+        self._available_trees = []
+        for treename in tree_keys:
+            splitted = treename.split("_")
+            if len(splitted)<3:
+                continue
+            if splitted[0]=="opflash" and splitted[-1]=="tree":
+                producername = treename[len("opflash_"):-len("_tree")]
+                self._available_trees.append( producername )
             
-        # Get opflash treename from configuration or use default
-        self.opflash_treename = "simpleFlashBeam"
-        required_tree = f"opflash_{self.opflash_treename}_tree"
-        
-        if required_tree not in tree_keys:
-            logger.info(f"IntimeFlashPlotter not applicable: missing tree {required_tree}")
+            
+        if len(self._available_trees)>0:
+            logger.info("IntimeFlashPlotter is applicable for the current data")
+            return True
+        else:
+            logger.info("IntimeFlashPlotter did not find any opflash trees")
             return False
-        
-        logger.info("IntimeFlashPlotter is applicable for the current data")
-        return True
     
     def initialize_options(self) -> None:
         """Initialize options for this plotter"""
@@ -87,6 +94,17 @@ class IntimeFlashPlotter(BasePlotter):
         return [
             html.Div([
                 html.Label('Optical Flash Options:'),
+                html.Div([
+                    html.Label('OpFlash Source:'),
+                    dcc.Dropdown(
+                        id='intimeflash-source',
+                        options=[
+                            {'label': tree, 'value': tree} for tree in self._available_trees
+                        ],
+                        value=self._available_trees[0] if self._available_trees else None,
+                        clearable=False
+                    )
+                ], style={'margin-bottom': '10px'}),
                 html.Div([
                     html.Label('Select Flash:'),
                     dcc.Dropdown(
@@ -139,13 +157,14 @@ class IntimeFlashPlotter(BasePlotter):
     def get_option_component_ids(self):
         """Get component IDs used by this plotter"""
         return [
+            'intimeflash-source',
             'intimeflash-selector',
             'intimeflash-pmt-radius',
             'intimeflash-pe-threshold',
             'intimeflash-display-options'
         ]
     
-    def get_flash_data(self, iolarlite) -> List[Tuple[int, float]]:
+    def get_flash_data(self, iolarlite, opflash_treename) -> List[Tuple[int, float]]:
         """
         Get flash data from the current event
         
@@ -161,7 +180,7 @@ class IntimeFlashPlotter(BasePlotter):
         flash_data = []
         
         try:
-            ev_flash = iolarlite.get_data("opflash", self.opflash_treename)
+            ev_flash = iolarlite.get_data("opflash", opflash_treename)
             nflashes = ev_flash.size()
             
             # Find intime flash (in window [2.94, 4.98])
@@ -219,16 +238,18 @@ class IntimeFlashPlotter(BasePlotter):
             if options is None:
                 options = {}
             
-            selected_flash = options.get('selected_flash', self.get_option_value('selected_flash', 'intime'))
-            pmt_radius = options.get('pmt_radius', self.get_option_value('pmt_radius', 15.24))
-            pe_threshold = options.get('pe_threshold', self.get_option_value('pe_threshold', 0.0))
-            
-            # Get flash data
-            flash_data = self.get_flash_data(iolarlite)
+            opflash_source = options.get('flash_source',   self._available_trees[0] if self._available_trees else None )
+            selected_flash = options.get('selected_flash', self.get_option_value('selected_flash', 'intime') )
+            pmt_radius     = options.get('pmt_radius',     self.get_option_value('pmt_radius', 15.24) )
+            pe_threshold   = options.get('pe_threshold',   self.get_option_value('pe_threshold', 0.0) )
             
             # Get the opflash event
-            ev_flash = iolarlite.get_data("opflash", self.opflash_treename)
-            self.log_info(f"Number of optical flashes: {ev_flash.size()}")
+            ev_flash = iolarlite.get_data("opflash", opflash_source)
+            self.log_info(f"Number of optical flashes from {opflash_source}: {ev_flash.size()}")
+
+            # Get flash data
+            self.log_info(f"Get optical flashes from {opflash_source}")
+            flash_data     = self.get_flash_data(iolarlite, opflash_source)
             
             traces = []
             
@@ -236,7 +257,7 @@ class IntimeFlashPlotter(BasePlotter):
             if selected_flash == 'null':
                 # Show empty flash
                 self.log_info("Creating empty flash visualization")
-                traces = visualize_empty_opflash(pmt_radius=pmt_radius)
+                traces = visualize_empty_opflash()
                 
             elif selected_flash == 'intime' and flash_data['intime_index'] is not None:
                 # Show the first flash in the intime window
@@ -254,12 +275,12 @@ class IntimeFlashPlotter(BasePlotter):
                     traces = visualize_larlite_opflash_3d(flash, pmt_radius_cm=pmt_radius, pe_draw_threshold=pe_threshold, use_v4_geom=True)
                 else:
                     self.log_error(f"Flash index {index} out of range")
-                    traces = visualize_empty_opflash(pmt_radius=pmt_radius)
+                    traces = visualize_empty_opflash()
             
             else:
                 # Default to empty if no valid selection
                 self.log_info("No valid flash selection, showing empty")
-                traces = visualize_empty_opflash(pmt_radius=pmt_radius)
+                traces = visualize_empty_opflash()
             
             self.log_info(f"Created {len(traces)} flash traces")
             return traces
@@ -277,17 +298,20 @@ class IntimeFlashPlotter(BasePlotter):
             @app.callback(
                 Output('intimeflash-selector', 'options'),
                 [Input('io-nav-button-load-entry', 'n_clicks'),
-                 Input('intimeflash-display-options', 'value')],
+                 Input('intimeflash-display-options', 'value'),
+                 Input('intimeflash-source', 'value')],
                 [State('det3d-viewer-checklist-plotchoices', 'value')],
                 prevent_initial_call=True
             )
-            def update_flash_selector(n_clicks, display_options, selected_plotters):
+            def update_flash_selector(n_clicks, display_options, flash_source, selected_plotters):
                 # Only update if this plotter is selected
                 if 'IntimeFlash' not in selected_plotters:
                     # Return a single placeholder option if not selected
                     return [{'label': 'Select a flash...', 'value': 'intime'}]
                 
                 show_null = 'show_null' in display_options if display_options else False
+
+                logger.info(f"update_flash_select(...) - flash_source={flash_source}")
                 
                 # Get the IO manager and check if it's loaded
                 from lardly.ubdl.io.io_manager import get_tree_dict
@@ -298,7 +322,7 @@ class IntimeFlashPlotter(BasePlotter):
                     return [{'label': 'No data loaded', 'value': 'loading'}]
                 
                 # Get flash data
-                flash_data = self.get_flash_data(iolarlite)
+                flash_data = self.get_flash_data(iolarlite, flash_source)
                 options = []
                 
                 # Add null option if requested
@@ -325,6 +349,20 @@ class IntimeFlashPlotter(BasePlotter):
                     })
                 
                 return options
+
+            # Update selected flash source when dropdown changes
+            @app.callback(
+                Output('det3d-hidden-output', 'children', allow_duplicate=True),
+                [Input('intimeflash-source', 'value')],
+                prevent_initial_call=True
+            )
+            def store_selected_flash_source(value):
+                if value:
+                    self.set_option_value('flash_source', value)
+                    # Clear the flash data cache when source changes
+                    self._flash_data = None
+                    logger.info(f"Cleared flash data cache after source change to: {value}")
+                return None
             
             # Update selected flash in state when dropdown changes
             @app.callback(

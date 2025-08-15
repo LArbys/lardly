@@ -4,7 +4,7 @@ from ..ubdl.pmtpos import getPMTPosByOpChannel, getPMTPosByOpDet, getOpChannelFr
 import numpy as np
 from plotly import graph_objects as go
 
-def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_color=None ):
+def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_color=None,x_offset=0,rgb_channel='r'):
 
     np_theta = np.linspace(0,2*np.pi,nsteps)    
     x = np.ones( nsteps+1 )*center[0]
@@ -30,7 +30,14 @@ def define_circle_mesh( center, radius, value, nsteps=20, color=None, outline_co
     if color is None:
         value = min(1.0,value)
         value = max(0.0,value)
-        color='rgb(%d,0,0)'%( 54+int(value*200) )
+        if rgb_channel=='r':
+            color='rgb(%d,0,0)'%( 54+int(value*200) )
+        elif rgb_channel=='g':
+            color='rgb(0,%d,0)'%( 54+int(value*200) )
+        elif rgb_channel=='b':
+            color='rgb(0,0,%d)'%( 54+int(value*200) )
+        else:
+            raise ValueError("rgb_channel must either be r, g, or b")
 
     mesh = go.Mesh3d( x=x, y=y, z=z, i=i, j=j, k=k,
                       showscale=False, name="opflash", color=color )
@@ -55,6 +62,8 @@ def visualize_larlite_opflash_3d( opflash, pmt_radius_cm=15.24,
                                   use_v4_geom=False,
                                   use_opdet_index=False,
                                   xpos_by_time=False,
+                                  x_offset=0,
+                                  rgb_channel='r',
                                   pe_draw_threshold=0.0):
     from larlite import larlite
     from larlite import larutil
@@ -110,12 +119,12 @@ def visualize_larlite_opflash_3d( opflash, pmt_radius_cm=15.24,
             
         if xpos_by_time:
             t = opflash.Time()
-            xpos = t*dv
+            xpos = t*dv+x_offset
             recenter = [xpos,center[1],center[2]]
         else:
-            recenter = center
+            recenter = [center[0]+x_offset,center[1],center[2]]
         
-        mesh, outline = define_circle_mesh( recenter, pmt_radius_cm, value, nsteps=20 )
+        mesh, outline = define_circle_mesh( recenter, pmt_radius_cm, value, nsteps=20, x_offset=x_offset, rgb_channel=rgb_channel )
         hovertext =  f"<b>OpChannel</b>: {opchid}<br>"
         hovertext += f"<b>OpDetID</b>: {opdetid}"
         mesh['hovertext'] = hovertext

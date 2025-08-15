@@ -281,14 +281,16 @@ class CRTPlotter(BasePlotter):
                     <b>t</b>: %{customdata[0]} usec<br>
                     <b>tick</b>: %{customdata[1]}<br>
                     <b>CRT plane</b>: %{customdata[2]}<br>
+                    <b>Index</b>: %{customdata[3]:%d}<br>
                     """
+
                     
                     hitinfo_v = []
                     
                     # Apply flash filtering if enabled
                     for ihit in range(ev_crthit.size()):
                         crthit = ev_crthit.at(ihit)
-                        hitinfo = np.zeros(6)
+                        hitinfo = np.zeros(7)
                         t_usec = crthit.ts2_ns * 0.001
                         dx = t_usec * dv
                         
@@ -298,6 +300,7 @@ class CRTPlotter(BasePlotter):
                         hitinfo[3] = t_usec
                         hitinfo[4] = 3200 + t_usec / 0.5
                         hitinfo[5] = crthit.plane
+                        hitinfo[6] = ihit
                         
                         # Apply flash filter if enabled
                         if filter_by_opflash and flash_times is not None:

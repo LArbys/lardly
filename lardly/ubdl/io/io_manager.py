@@ -177,30 +177,35 @@ class IOManager:
             if self._larcv_io is not None:
                 try:
                     self._larcv_io.read_entry(entry)
+                    logger.info(f"Read larcv entry [{entry}]")
                 except Exception as e:
                     logger.error(f"Error reading larcv entry: {e}")
             
             if self._larlite_io is not None:
                 try:
                     self._larlite_io.go_to(entry)
+                    logger.info(f"Read larlite entry [{entry}]")                    
                 except Exception as e:
                     logger.error(f"Error reading larlite entry: {e}")
             
             if self._recoTree is not None:
                 try:
                     self._recoTree.GetEntry(entry)
+                    logger.info(f"Read recoTree entry [{entry}]")
                 except Exception as e:
                     logger.error(f"Error reading recoTree entry: {e}")
 
             if self._cosmicTree is not None:
                 try:
                     self._cosmicTree.GetEntry(entry)
+                    logger.info(f"Read cosmicTree entry [{entry}]")                    
                 except Exception as e:
                     logger.error(f"Error reading cosmicTree entry: {e}")
             
             if self._eventTree is not None:
                 try:
                     self._eventTree.GetEntry(entry)
+                    logger.info(f"Read eventTree entry [{entry}]")                    
                 except Exception as e:
                     logger.error(f"Error reading eventTree entry: {e}")
             

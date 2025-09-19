@@ -152,6 +152,7 @@ def visualize_larcv_image2d(image2d, minz=0.0, maxz=200.0, reverse_ticks=False, 
     from larcv import larcv
     
     meta = image2d.meta()
+    print("meta: ",meta.dump())
     imgnp = np.transpose(larcv.as_ndarray(image2d), (1, 0))
     
     # Adjust x-axis for planes 0 and 1

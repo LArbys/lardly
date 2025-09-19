@@ -259,8 +259,9 @@ class LArFlowHitsPlotter(BasePlotter):
             
             # Get cluster data
             traces = []
-            self.log_info("getting clusters from source: {cluster_source}")
+            self.log_info(f"getting clusters from source: {cluster_source}")
             ev_cluster = iolarlite.get_data("larflow3dhit", cluster_source)
+            #ev_cluster = iolarlite.get_data(larlite.data.kLArFlow3DHit, cluster_source)
             self.log_info(f"Number of clusters from {cluster_source}: {ev_cluster.size()}")
 
             # Process the hits

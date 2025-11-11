@@ -112,7 +112,7 @@ def visualize_larlite_opflash_3d( opflash, pmt_radius_cm=15.24,
             center = getPMTPosByOpChannel(ipmt, use_v4_geom=use_v4_geom)
             opdetid = getOpDetFromOpChannel(ipmt)
         else:
-            # interpret indeex as (larsoft opdet index)
+            # interpret index as (larsoft opdet index)
             opdetid = ipmt
             center = getPMTPosByOpDet(ipmt, use_v4_geom=use_v4_geom)
             opchid  = getOpChannelFromOpDet(ipmt)

@@ -3,11 +3,13 @@ import os,sys
 import numpy as np
 import plotly.graph_objs as go
 
-def visualize_larcv_image2d( image2d, minz=0.0, maxz=200.0, reverse_ticks=False, downsample=None ):
+def visualize_larcv_image2d( image2d, minz=0.0, maxz=200.0, reverse_ticks=False, downsample=None, dump_metainfo=False ):
     from larcv import larcv
     larcv.load_pyutil()
     
     meta = image2d.meta()
+    if dump_metainfo:
+        print("meta: ",meta.dump())
     imgnp = np.transpose( larcv.as_ndarray( image2d ), (1,0) )
     if meta.plane() in [0,1]:
         imgnp = imgnp[:,0:2400]

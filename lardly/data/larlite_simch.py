@@ -4,19 +4,24 @@ import os,sys
 import numpy as np
 from ROOT import std
 from larlite import larlite,larutil
+from ublarcvapp import ublarcvapp
 
-def visualize_larlite_simch( event_simch_v, color=None, opacity=1.0, 
+def visualize_larlite_simch( event_simch_v, color_by='edep', opacity=1.0, marker_size=2.0, 
                             min_image_tick=2400, max_image_tick=8448,
-                            max_num_pts=100 ):
+                            max_num_pts=20000,
+                            ioll=None ):
 
     timeservice = larutil.TimeService.GetME()
 
     nsimch = event_simch_v.size()
     min_tdc = 1e9
     max_tdc = 0
-    min_tick = 1e9
+    min_tick = 50000
     max_tick = 0
     pos_v = []
+    tid_v = []
+
+    tid_map = {}
     for isimch in range(nsimch):
         simch = event_simch_v.at(isimch)
         chid = simch.Channel()
@@ -25,7 +30,7 @@ def visualize_larlite_simch( event_simch_v, color=None, opacity=1.0,
         for it in idcmap:
 
             tdc = float(it.first)
-            tick = timeservice.TPCTDC2Tick(tdc)
+            tick = int(timeservice.TPCTDC2Tick(tdc))
 
             if min_tdc > tdc:
                 min_tdc = tdc
@@ -44,35 +49,117 @@ def visualize_larlite_simch( event_simch_v, color=None, opacity=1.0,
             nide = ide_v.size()
             for iide in range(nide):
                 ide = ide_v.at(iide)
-                pos_v.append( (ide.x,ide.y,ide.z,tick,ide.trackID,ide.energy) )
+                tid = int(ide.trackID)
+                if tid not in tid_map:
+                    tid_map[tid] = {}
+                if tick not in tid_map[tid]:
+                    tid_map[tid][tick] = []
+                tid_map[tid][tick].append( (chid,ide.energy,ide.x,ide.y,ide.z) )
+                pos_v.append( (ide.x,ide.y,ide.z,ide.energy,chid) )
+                tid_v.append( (tid) )
 
         #print(f"Simch[{chid}]: num ide map entries = {nentries}")
-    print("tdc: [",min_tdc,",",max_tdc,"]")
-    print("tick: [",min_tick,",",max_tick,"]")
-    print("Number of deposits within image tick bounds: ",len(pos_v))
+    #print("tdc: [",min_tdc,",",max_tdc,"]")
+    #print("tick: [",min_tick,",",max_tick,"]")
+    #print("Number of deposits within image tick bounds: ",len(pos_v))
+    # for tid in tid_map:
+    #     print("TRACKID[",tid,"]")
+    #     tick_map = tid_map[tid]
+    #     #for tick in tick_map:
+    #     #    print("  tick[",tick,"]: ",tick_map[tick])
 
     data = np.array( pos_v )
-    print("data array: ",data.shape)
+    tid_array = np.array( tid_v )
+    #print("data array: ",data.shape)
 
     if data.shape[0]>max_num_pts:
         indexlist = np.arange(data.shape[0])
         np.random.shuffle(indexlist)
         data = data[indexlist[:max_num_pts],:]
-        print("downsampled data array: ",data.shape)
+        tid_array = tid_array[indexlist[:max_num_pts]]
+        #print("downsampled data array: ",data.shape)
+
+    mcpg = None
+    if color_by in ['instance','ancestor'] and ioll is not None:
+        # replace IDs by shower mother id
+        tid_showermid = {}
+        mcpg = ublarcvapp.mctools.MCPixelPGraph()
+        mcpg.buildgraphonly( ioll )
+        unique_tid = np.unique( tid_array )
+        for tid in unique_tid:
+            #print("find tid: ",tid," ",type(tid))
+            xtid = abs(int(tid))
+            mtid = mcpg.getShowerMotherID( xtid )
+            if mtid<0 and int(tid)<0:
+                mtid = mcpg.getShowerMotherID( int(tid) )
+            if mtid>0:
+                #print("  found shower motherid: ",mtid)
+                tid_showermid[int(tid)] = mtid
+            else:
+                tid_showermid[int(tid)] = int(tid)
+        for tid in unique_tid:
+            tid_mask = tid_array==tid
+            tid_array[tid_mask[:]] = tid_showermid[int(tid)]
+
+
+    if color_by=='ancestor' and ioll is not None:
+        tid_to_ancestor = {}
+        if mcpg is None:
+            mcpg = ublarcvapp.mctools.MCPixelPGraph()
+            mcpg.buildgraphonly( ioll )
+        
+        #mcpg.printAllNodeInfo()
+        unique_tid = np.unique( tid_array )
+        for tid in unique_tid:
+            #print("find aid for tid: ",tid," ",type(tid))
+            aid = mcpg.getAncestorID( xtid )
+            if aid<=0:
+                #print(" cannot get aid for tid=",xtid)
+                tid_to_ancestor[tid] = xtid
+                continue
+            else:
+                #print(" ancestor found: ",aid)
+                tid_to_ancestor[tid] = aid
+
+        for tid in unique_tid:
+            tid_mask = tid_array==tid
+            tid_array[tid_mask[:]] = tid_to_ancestor[tid]
+
     
-    print(data[:10])
+    # print(data[:10])
+    simch_plots = []
+    if color_by=='edep':
+        simch_plot = {
+             "type":"scatter3d",
+             "x":data[:,0],
+             "y":data[:,1],
+             "z":data[:,2],
+             "mode":"markers",
+             "name":"simch",
+             "marker":{"color":data[:,3],'opacity':opacity,'size':marker_size},
+        }
+        simch_plots.apppend( simch_plot )
+    elif color_by in ['instance','ancestor']:
+        unique_tid = np.unique( tid_array )
+        for tid in unique_tid:
+            instance_mask = tid_array==tid
+            xdata = data[instance_mask[:],:]
+            rcolor = np.random.randint(0,255,3)
+            strcolor = "rgba(%d,%d,%d,1.0)"%(rcolor[0],rcolor[1],rcolor[2])
+            simch_plot = {
+                "type":"scatter3d",
+                "x":xdata[:,0],
+                "y":xdata[:,1],
+                "z":xdata[:,2],
+                "mode":"markers",
+                "name":f"tid[{tid}]",
+                "marker":{"color":strcolor,"opacity":opacity,"size":marker_size}
+            }
+            simch_plots.append( simch_plot )
+    else:
+        raise ValueError("Unrecognized color_by option: ",color_by)
 
-    simch_plot = {
-        "type":"scatter3d",
-        "x":data[:,0],
-        "y":data[:,1],
-        "z":data[:,2],
-        "mode":"markers",
-        "name":"simch",
-        "marker":{"color":'rgba(255,255,255,1.0)','opacity':0.5},
-    }
-
-    return simch_plot
+    return simch_plots
 
 if __name__=="__main__":
 
@@ -86,6 +173,9 @@ if __name__=="__main__":
     from lardly.detectoroutline import DetectorOutline
 
     detdata = DetectorOutline()
+    colorby = 'instance'
+    #colorby = 'ancestor'
+    #colorby = 'edep'
 
     input_larlite_file = sys.argv[1]
     if len(sys.argv)>=3:
@@ -111,7 +201,12 @@ if __name__=="__main__":
 
     ioll.go_to(0)
     event_simch = ioll.get_data("simch",producer)
-    simch_plot = visualize_larlite_simch( event_simch )
+    simch_plots = visualize_larlite_simch( event_simch, color_by=colorby, ioll=ioll )
+
+    traces = detdata.getlines()+simch_plots
+
+    if False:
+        sys.exit(0)
 
     app = dash.Dash(
         __name__,
@@ -146,13 +241,15 @@ if __name__=="__main__":
         },
     }
 
+    
+
 
     app.layout = html.Div( [
         html.Div( [
             dcc.Graph(
                 id="det3d",
                 figure={
-                    "data": detdata.getlines()+[simch_plot],
+                    "data": traces,
                     "layout": plot_layout,
                 },
                 config={"editable": True, "scrollZoom": False},

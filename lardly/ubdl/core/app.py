@@ -54,6 +54,9 @@ def init_plotters() -> None:
     from lardly.ubdl.plotters.implementations.cosmictracks import CosmicTracksPlotter
     register_plotter(CosmicTracksPlotter())
 
+    from lardly.ubdl.plotters.implementations.pcaxis import PCAxisPlotter
+    register_plotter(PCAxisPlotter())
+
     # Add more plotters here as needed
     # etc.
 

@@ -58,6 +58,7 @@ def visualize_larlite_simch( event_simch_v, color_by='edep', opacity=1.0, marker
                 pos_v.append( (ide.x,ide.y,ide.z,ide.energy,chid) )
                 tid_v.append( (tid) )
 
+
         #print(f"Simch[{chid}]: num ide map entries = {nentries}")
     #print("tdc: [",min_tdc,",",max_tdc,"]")
     #print("tick: [",min_tick,",",max_tick,"]")
@@ -126,7 +127,31 @@ def visualize_larlite_simch( event_simch_v, color_by='edep', opacity=1.0, marker
             tid_array[tid_mask[:]] = tid_to_ancestor[tid]
 
     
-    # print(data[:10])
+    labels_v = []
+    if mcpg is not None:
+        print("Make customdata for hovertemplate")
+        for i in range(data.shape[0]):
+            xtid = int(tid_array[i])
+            pid  = float(mcpg.getParticleID(xtid))
+            aid  = float(mcpg.getAncestorID(xtid))
+            chid = data[i,4]
+            edep = data[i,3]
+            labels_v.append((edep,pid,float(xtid),aid,chid))
+        customdata = np.array( labels_v, dtype=np.float32 )
+        hovertemplate = """
+        <b>x</b>: %{x:.1f}<br>
+        <b>y</b>: %{y:.1f}<br>
+        <b>z</b>: %{z:.1f}<br>
+        <b>edep</b>: %{customdata[0]:.3f} MeV<br>
+        <b>PID</b>:  %{customdata[1]:d}<br>
+        <b>TID</b>:  %{customdata[2]:d}<br>
+        <b>AID</b>:  %{customdata[3]:d}<br>
+        <b>ChID</b>: %{customdata[4]:d}<br>
+        """
+    else:
+        customdata = None
+        hovertemplate = None
+
     simch_plots = []
     if color_by=='edep':
         simch_plot = {
@@ -138,23 +163,39 @@ def visualize_larlite_simch( event_simch_v, color_by='edep', opacity=1.0, marker
              "name":"simch",
              "marker":{"color":data[:,3],'opacity':opacity,'size':marker_size},
         }
-        simch_plots.apppend( simch_plot )
+        simch_plots.append( simch_plot )
     elif color_by in ['instance','ancestor']:
         unique_tid = np.unique( tid_array )
         for tid in unique_tid:
             instance_mask = tid_array==tid
             xdata = data[instance_mask[:],:]
+            if customdata is not None:
+                xcustomdata = customdata[instance_mask[:],:]
             rcolor = np.random.randint(0,255,3)
             strcolor = "rgba(%d,%d,%d,1.0)"%(rcolor[0],rcolor[1],rcolor[2])
-            simch_plot = {
-                "type":"scatter3d",
-                "x":xdata[:,0],
-                "y":xdata[:,1],
-                "z":xdata[:,2],
-                "mode":"markers",
-                "name":f"tid[{tid}]",
-                "marker":{"color":strcolor,"opacity":opacity,"size":marker_size}
-            }
+            if hovertemplate is None:
+                simch_plot = {
+                    "type":"scatter3d",
+                    "x":xdata[:,0],
+                    "y":xdata[:,1],
+                    "z":xdata[:,2],
+                    "mode":"markers",
+                    "name":f"tid[{tid}]",
+                    "marker":{"color":strcolor,"opacity":opacity,"size":marker_size}
+                }
+            else:
+                #print("simch plot with template")
+                simch_plot = {
+                    "type":"scatter3d",
+                    "x":xdata[:,0],
+                    "y":xdata[:,1],
+                    "z":xdata[:,2],
+                    "mode":"markers",
+                    "name":f"tid[{tid}]",
+                    "customdata":xcustomdata,
+                    "hovertemplate":hovertemplate,
+                    "marker":{"color":strcolor,"opacity":opacity,"size":marker_size}
+                }                
             simch_plots.append( simch_plot )
     else:
         raise ValueError("Unrecognized color_by option: ",color_by)

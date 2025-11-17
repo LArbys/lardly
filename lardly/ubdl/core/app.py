@@ -57,6 +57,9 @@ def init_plotters() -> None:
     from lardly.ubdl.plotters.implementations.pcaxis import PCAxisPlotter
     register_plotter(PCAxisPlotter())
 
+    from lardly.ubdl.plotters.implementations.simch import SimChPlotter
+    register_plotter(SimChPlotter())
+
     # Add more plotters here as needed
     # etc.
 

@@ -81,11 +81,13 @@ def visualize_larlite_simch( event_simch_v, color_by='edep', opacity=1.0, marker
         #print("downsampled data array: ",data.shape)
 
     mcpg = None
-    if color_by in ['instance','ancestor'] and ioll is not None:
-        # replace IDs by shower mother id
-        tid_showermid = {}
+    if ioll is not None:
         mcpg = ublarcvapp.mctools.MCPixelPGraph()
         mcpg.buildgraphonly( ioll )
+
+    if color_by in ['instance','ancestor'] and mcpg is not None:
+        # replace IDs by shower mother id
+        tid_showermid = {}
         unique_tid = np.unique( tid_array )
         for tid in unique_tid:
             #print("find tid: ",tid," ",type(tid))
@@ -154,15 +156,28 @@ def visualize_larlite_simch( event_simch_v, color_by='edep', opacity=1.0, marker
 
     simch_plots = []
     if color_by=='edep':
-        simch_plot = {
-             "type":"scatter3d",
-             "x":data[:,0],
-             "y":data[:,1],
-             "z":data[:,2],
-             "mode":"markers",
-             "name":"simch",
-             "marker":{"color":data[:,3],'opacity':opacity,'size':marker_size},
-        }
+        if hovertemplate is None:
+            simch_plot = {
+                 "type":"scatter3d",
+                 "x":data[:,0],
+                 "y":data[:,1],
+                 "z":data[:,2],
+                 "mode":"markers",
+                 "name":"simch",
+                 "marker":{"color":data[:,3],'opacity':opacity,'size':marker_size},
+            }
+        else:
+            simch_plot = {
+                 "type":"scatter3d",
+                 "x":data[:,0],
+                 "y":data[:,1],
+                 "z":data[:,2],
+                 "mode":"markers",
+                 "name":"simch",
+                 "hovertemplate":hovertemplate,
+                 "customdata":customdata,
+                 "marker":{"color":data[:,3],'opacity':opacity,'size':marker_size},
+            }            
         simch_plots.append( simch_plot )
     elif color_by in ['instance','ancestor']:
         unique_tid = np.unique( tid_array )

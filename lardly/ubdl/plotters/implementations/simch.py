@@ -219,7 +219,7 @@ class SimChPlotter(BasePlotter):
                opacity=marker_opacity,
                marker_size=marker_size,
                ioll=iolarlite,
-               max_num_pts=20000)
+               max_num_pts=100000)
                
             self.log_info(f"Created {len(simch_plots)} cluster traces")
             return simch_plots

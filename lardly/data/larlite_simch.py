@@ -21,6 +21,11 @@ def visualize_larlite_simch( event_simch_v, color_by='edep', opacity=1.0, marker
     pos_v = []
     tid_v = []
 
+    mcpg = None
+    if ioll is not None:
+        mcpg = ublarcvapp.mctools.MCParticleGraph()
+        mcpg.buildgraph( ioll )
+
     tid_map = {}
     for isimch in range(nsimch):
         simch = event_simch_v.at(isimch)
@@ -42,27 +47,53 @@ def visualize_larlite_simch( event_simch_v, color_by='edep', opacity=1.0, marker
             if max_tick < tick:
                 max_tick = tick
 
-            if tick<min_image_tick or tick>max_image_tick:
-                continue
+            #if tick<min_image_tick or tick>max_image_tick:
+            #    continue
 
             ide_v = it.second
             nide = ide_v.size()
             for iide in range(nide):
                 ide = ide_v.at(iide)
                 tid = int(ide.trackID)
+                tid = abs(tid)
+
+                t0_ns = None
+                if mcpg is not None:
+                    mtid = mcpg.getShowerMotherID( tid )
+                    if mtid>0:
+                        tid = mtid
+                    aid = mcpg.getAncestorID( tid )
+                    if aid>0:
+                        t0_ns = mcpg.findTrackID( tid ).start.at(3)
+                
+                x_t0_offset = 0.0
+                if t0_ns is not None:
+                    x_t0_offset = t0_ns*0.001*0.1098
+                else:
+                    continue
+
                 if tid not in tid_map:
                     tid_map[tid] = {}
                 if tick not in tid_map[tid]:
                     tid_map[tid][tick] = []
                 tid_map[tid][tick].append( (chid,ide.energy,ide.x,ide.y,ide.z) )
-                pos_v.append( (ide.x,ide.y,ide.z,ide.energy,chid) )
+                if ide.x<-1000 or ide.x>10000:
+                    continue
+                if ide.y<-1000 or ide.y>10000:
+                    continue
+                if ide.z<-1000 or ide.z>10000:
+                    continue
+
+                #x_tick = (tick-3200)*0.5*0.1098 - x_t0_offset
+                x_tick = (tick-3200)*0.5*0.1098
+                pos_v.append( (x_tick,ide.y,ide.z,ide.energy,chid) )
                 tid_v.append( (tid) )
 
 
         #print(f"Simch[{chid}]: num ide map entries = {nentries}")
     #print("tdc: [",min_tdc,",",max_tdc,"]")
     #print("tick: [",min_tick,",",max_tick,"]")
-    #print("Number of deposits within image tick bounds: ",len(pos_v))
+    print("Number of SimCh deposits within image tick bounds: ",len(pos_v))
     # for tid in tid_map:
     #     print("TRACKID[",tid,"]")
     #     tick_map = tid_map[tid]
@@ -79,11 +110,6 @@ def visualize_larlite_simch( event_simch_v, color_by='edep', opacity=1.0, marker
         data = data[indexlist[:max_num_pts],:]
         tid_array = tid_array[indexlist[:max_num_pts]]
         #print("downsampled data array: ",data.shape)
-
-    mcpg = None
-    if ioll is not None:
-        mcpg = ublarcvapp.mctools.MCPixelPGraph()
-        mcpg.buildgraphonly( ioll )
 
     if color_by in ['instance','ancestor'] and mcpg is not None:
         # replace IDs by shower mother id

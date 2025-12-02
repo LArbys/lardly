@@ -79,7 +79,7 @@ class IOManager:
                 tlist = tfile.GetListOfKeys()
                 for i in range(tlist.GetEntries()):
                     key = str(tlist.At(i))
-                    
+                    # Name: potsummary_generator_tree Title: potsummary Tree by generator
                     if 'KPSRecoManagerTree' in key:
                         self._recoTree.AddFile(file_path)
                         tree_name = key.strip().split()[1]
@@ -92,7 +92,8 @@ class IOManager:
                         self._eventTree.AddFile(file_path)
                         self._available_trees.append("EventTree")
                     elif "_tree" in key:
-                        tree_name = key.strip().split()[1]
+                        tree_name = key[len("Name:"):key.find("Title:")].strip()
+                        print("parsed: '",tree_name,"'")
                         self._available_trees.append(tree_name)
                 
                 tfile.Close()

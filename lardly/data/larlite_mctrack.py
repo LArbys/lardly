@@ -57,11 +57,11 @@ def extract_mctrackpts( mctrack, sce=None, no_offset=False, set_tick=0, trigger_
             x  = (tick - trigger_tick)*cm_per_tick
             #print("this is X WITHOUT set_tick nonzero: ",x)
 
-        if no_offset: # plot raw mcstep X position instead of conversion above
-            x  = step.X()
-        #    steps_np[istep,:] = (step.X(),step.Y(),step.Z())
-        #else:
-        #    x  = step.X()
+        if not no_offset: # plot raw mcstep X position instead of conversion above
+            print("apply offset for t0=",t," ns: ",t*1.0e-3*larutil.LArProperties.GetME().DriftVelocity())
+            x += t*1.0e-3*larutil.LArProperties.GetME().DriftVelocity()
+            
+
         steps.append( [x,step.Y(),step.Z()] )
 
     if len(steps)==0:
@@ -147,7 +147,8 @@ def visualize_larlite_mctrack( mctrack, origin=None,
                                 do_sce_correction=False,
                                 color_labels=default_pid_colors,
                                 width=3, color_by_origin=False, no_offset=False, set_tick=0 ):
-
+    from larlite import larutil
+    
     pid = mctrack.PdgCode()
 
     # cosmic origin
@@ -171,6 +172,11 @@ def visualize_larlite_mctrack( mctrack, origin=None,
             for ipt in range(npoints):
                 for i in range(3):
                     steps_np[ipt,i] = lltrack.LocationAtPoint(ipt)(i)
+                if not no_offset:
+                    t0 = mctrack.Start().T()*1.0e-3
+                    xoffset = t0*larutil.LArProperties.GetME().DriftVelocity()
+                    steps_np[ipt,0] += xoffset
+
         else:
             raise ValueError("SCE correction requested, but SCE class not loaded.")
     else:

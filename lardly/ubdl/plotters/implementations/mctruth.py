@@ -144,12 +144,14 @@ class MCTruthPlotter(BasePlotter):
         show_vertices = 'vertices' in display_options if 'display_options' in options else self.get_option_value('show_vertices', True)
         do_sce_correction = 'sce' in display_options if 'display_options' in options else self.get_option_value('do_sce_correction', True)
         no_offset = 'no_offset' in display_options if 'display_options' in options else self.get_option_value('no_offset', False)
+
+        self.log_info(f"no_offset flag: {no_offset}")
         
         # dump MC particle graph
         self.log_info('MCPixelPGraph Start')
         mcpg = ublarcvapp.mctools.MCPixelPGraph()
         mcpg.buildgraphonly( iolarlite )
-        mcpg.printGraph(0,False)
+        #mcpg.printGraph(0,False)
         self.log_info('MCPixelPGraph End')
 
         traces = []
@@ -243,6 +245,10 @@ class MCTruthPlotter(BasePlotter):
                     # bad origin, type to skip
                     continue
 
+                x_t0_offset = 0.0
+                if not no_offset:
+                    x_t0_offset = originpt[-1]*1.0e-3*larutil.LArProperties.GetME().DriftVelocity()
+
                 dirnorm = 0.
                 for i in range(3):
                     dirnorm += origin_dir[i]*origin_dir[i]
@@ -324,7 +330,7 @@ class MCTruthPlotter(BasePlotter):
         
                 shower_prof_trace = {
                     "type":"scatter3d",
-                    "x":profpts[:,0],
+                    "x":profpts[:,0]+x_t0_offset,
                     "y":profpts[:,1],
                     "z":profpts[:,2],
                     "mode":"lines",

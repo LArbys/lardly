@@ -62,10 +62,15 @@ def make_opdet_plot( opdet_values, pmt_radius_cm=15.2, use_opdet_index=True, use
         if all_pe[i]<min_pe:
             min_pe = all_pe[i]
 
+    perange = max_pe-min_pe
+
     circles = []
     for ipmt in range(32):
         pe = all_pe[ipmt]
-        value = (pe-min_pe)/(max_pe-min_pe)
+        if perange>0.0:
+            value = (pe-min_pe)/(max_pe-min_pe)
+        else:
+            value = 0.0
         value = min( value, 1.0 )
         value = max( value, 0 )
         if use_opdet_index:
@@ -75,6 +80,23 @@ def make_opdet_plot( opdet_values, pmt_radius_cm=15.2, use_opdet_index=True, use
         #center = [pmtposmap[ipmt][0]+x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
         mesh, outline = define_circle_mesh( center, pmt_radius_cm, value, nsteps=20 )
         circles.append( mesh )
+        circles.append( outline )
+        
+    return circles
+
+def make_opdet_outline_plot( pmt_radius_cm=15.2, use_opdet_index=True, use_v4_geom=True ):
+    """
+    Just returns the circular outlines
+    """
+
+    circles = []
+    for ipmt in range(32):
+        if use_opdet_index:
+            center = getPMTPosByOpDet(ipmt,use_v4_geom=use_v4_geom)
+        else:
+            center = getPMTPosByOpChannel(ipmt,use_v4_geom=use_v4_geom)
+        #center = [pmtposmap[ipmt][0]+x_offset, pmtposmap[ipmt][1], pmtposmap[ipmt][2] ]
+        mesh, outline = define_circle_mesh( center, pmt_radius_cm, 0.0, nsteps=20, outline_color='rgb(0,0,0)' )
         circles.append( outline )
         
     return circles

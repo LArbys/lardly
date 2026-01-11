@@ -184,7 +184,8 @@ def run_app(app: dash.Dash, port: Optional[int] = None, debug: Optional[bool] = 
         debug = config.get('ui', 'debug_mode', default=True)
     
     # Run the app
-    app.run_server(port=port, debug=debug)
+    #app.run_server(port=port, debug=debug)
+    app.run(port=port, debug=debug)
 
 def main() -> None:
     """

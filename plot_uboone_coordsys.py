@@ -272,7 +272,7 @@ def get_coordinate_annotations():
         ),
         # Drift direction label
         dict(
-            x=200, y=-150, z=-30,
+            x=200, y=-170, z=-30,
             text="Drift direction",
             showarrow=False,
             font=dict(size=20, color="rgb(50,50,50)"),
@@ -330,7 +330,7 @@ plot_layout = {
     "height": 1200,
     "width": 2400,
     "margin": {"t": 0, "b": 0, "l": 0, "r": 0},
-    "font": {"size": 20, "color": "black"},
+    "font": {"size": 16, "color": "black"},
     "showlegend": False,
     "plot_bgcolor": "rgb(255,255,255)",
     "paper_bgcolor": "rgb(255,255,255)",
